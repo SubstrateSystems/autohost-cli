@@ -6,10 +6,11 @@ import (
 	"fmt"
 )
 
-func GenerateLaravelAppKey() (string, error) {
-	buf := make([]byte, 32) // 32 bytes = 256 bits
-	if _, err := rand.Read(buf); err != nil {
-		return "", fmt.Errorf("no se pudo generar APP_KEY: %w", err)
+func GenerateRandomString(length int) string {
+	b := make([]byte, length)
+	if _, err := rand.Read(b); err != nil {
+		fmt.Println(fmt.Errorf("no se pudo generar APP_KEY: %w", err))
+		return ""
 	}
-	return "base64:" + base64.StdEncoding.EncodeToString(buf), nil
+	return base64.StdEncoding.EncodeToString(b)[:length]
 }

@@ -21,7 +21,7 @@ var statusCmd = &cobra.Command{
 			return
 		}
 
-		fmt.Println("📦 Estado del sistema AutoHost\n")
+		fmt.Println("📦 Estado del sistema AutoHost")
 
 		// Estado de Docker
 		if docker.DockerInstalled() {
