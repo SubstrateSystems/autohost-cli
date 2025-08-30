@@ -1,12 +1,60 @@
 package cmd
 
 import (
+	"autohost-cli/internal/config"
 	"autohost-cli/internal/helpers/app"
 	"autohost-cli/utils"
+	"bufio"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
+
+func askAppConfig(reader *bufio.Reader) config.AppConfig {
+	defaultAppName := "appdemo"
+	name := utils.AskInput(reader, "📝 Nombre de la aplicación", defaultAppName)
+
+	defaultTemplate := "bookstack"
+	var template string
+	for {
+		template = utils.AskInput(reader, "📦 Tipo de template (bookstack, nextcloud, redis, mysql)", defaultTemplate)
+		if config.ValidTemplates[template] {
+			break
+		}
+		fmt.Println("❌ Template no válido. Opciones: bookstack, nextcloud, redis, mysql.")
+	}
+
+	port := utils.AskInput(reader, "🔌 Puerto del host a utilizar", config.TemplatePorts[template])
+
+	var mysqlCfg *config.MySQLConfig
+	if template == "nextcloud" || template == "bookstack" {
+		mysqlCfg = askMySQLConfig(reader, name)
+	}
+
+	return config.AppConfig{
+		Name:     name,
+		Template: template,
+		Port:     port,
+		MySQL:    mysqlCfg,
+	}
+}
+
+func askMySQLConfig(reader *bufio.Reader, name string) *config.MySQLConfig {
+	fmt.Println("\n⚙️  Configuración de MySQL:")
+	user := utils.AskInput(reader, "MySQL usuario", "ah_user")
+	pass := utils.AskInput(reader, "MySQL contraseña", "autohost")
+	rootPass := utils.AskInput(reader, "MySQL contraseña root", "autohost")
+	db := utils.AskInput(reader, "MySQL base", name)
+	port := utils.AskInput(reader, "MySQL puerto", "3306")
+	return &config.MySQLConfig{
+		User:         user,
+		Password:     pass,
+		RootPassword: rootPass,
+		Database:     db,
+		Port:         port,
+	}
+}
 
 var appCmd = &cobra.Command{
 	Use:   "app",
@@ -16,26 +64,26 @@ var appCmd = &cobra.Command{
 var appInstallCmd = &cobra.Command{
 	Use:   "install [nombre]",
 	Short: "Instala una aplicación (por ejemplo: nextcloud, bookstack, etc.)",
-	Args:  cobra.ExactArgs(1),
-	Run: utils.WithAppName(func(appName string) {
+	Run: func(cmd *cobra.Command, args []string) {
+		reader := bufio.NewReader(os.Stdin)
+		cfg := askAppConfig(reader)
 
-		if err := app.InstallApp(appName); err != nil {
-			fmt.Printf("❌ Error al instalar %s: %v\n", appName, err)
+		if err := app.InstallApp(cfg); err != nil {
+			fmt.Printf("❌ Error al instalar %s: %v\n", cfg.Name, err)
 			return
 		}
 
-		fmt.Printf("✅ %s instalado correctamente. Revisa ~/.autohost/docker/compose/%s.yml\n", appName, appName)
+		startApp := utils.AskInput(reader, fmt.Sprintf("¿Deseas iniciar %s ahora? [Y/N]: ", cfg.Name), "Y")
 
-		if utils.Confirm(fmt.Sprintf("¿Deseas levantar %s ahora con Docker? [y/N]: ", appName)) {
-			if err := app.StartApp(appName); err != nil {
-				fmt.Printf("❌ Error al iniciar %s: %v\n", appName, err)
+		if startApp == "Y" {
+			if err := app.StartApp(cfg.Name); err != nil {
+				fmt.Printf("❌ Error al iniciar %s: %v\n", cfg.Name, err)
 			} else {
-				fmt.Printf("🚀 %s está corriendo en http://localhost:8080\n", appName)
+				fmt.Printf("🚀 La aplicación %s ha sido iniciada en http://localhost:%s\n", cfg.Name, cfg.Port)
 			}
 		}
-	}),
+	},
 }
-
 var appStartCmd = &cobra.Command{
 	Use:   "start [nombre]",
 	Short: "Inicia una aplicación",
@@ -88,18 +136,18 @@ var appStatusCmd = &cobra.Command{
 	Run: utils.WithAppName(func(appName string) {
 		status, err := app.GetAppStatus(appName)
 		if err != nil {
-			fmt.Printf("❌ No se pudo obtener el estado de %s: %v\n", appName, err)
+			fmt.Printf("❌ Error al obtener el estado de %s: %v\n", appName, err)
 		} else {
-			fmt.Printf("📊 Estado de %s: %s\n", appName, status)
+			fmt.Printf("📊  Estado de %s: %s\n", appName, status)
 		}
 	}),
 }
 
 func init() {
-	appCmd.AddCommand(appInstallCmd)
-	appCmd.AddCommand(appStartCmd)
-	appCmd.AddCommand(appStopCmd)
-	appCmd.AddCommand(appRemoveCmd)
-	appCmd.AddCommand(appStatusCmd)
 	rootCmd.AddCommand(appCmd)
+	appCmd.AddCommand(appInstallCmd)
+	appCmd.AddCommand(appStatusCmd)
+	appCmd.AddCommand(appRemoveCmd)
+	appCmd.AddCommand(appStopCmd)
+	appCmd.AddCommand(appStartCmd)
 }

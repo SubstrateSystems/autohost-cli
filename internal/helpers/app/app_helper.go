@@ -2,8 +2,8 @@ package app
 
 import (
 	"autohost-cli/assets"
+	"autohost-cli/internal/config"
 	"autohost-cli/utils"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,78 +11,30 @@ import (
 	"strings"
 )
 
-func InstallApp(app string) error {
-	appDir := filepath.Join(utils.GetSubdir("apps"), app)
+func InstallApp(app config.AppConfig) error {
+	appDir := filepath.Join(utils.GetSubdir("apps"), app.Name)
 	composePath := filepath.Join(appDir, "docker-compose.yml")
-	envPath := filepath.Join(appDir, ".env")
 
-	// Crear el directorio destino
 	if err := os.MkdirAll(appDir, 0o755); err != nil {
 		return fmt.Errorf("error creando directorio de destino: %w", err)
 	}
 
-	// === 1) Compose: embebido con fallback opcional ===
-	data, err := assets.ReadCompose(app) // assets/docker/<app>/docker-compose.yml
+	data, err := assets.ReadCompose(app.Template)
 	if err != nil {
-		// Fallback: plantilla personalizada del usuario (opcional)
-		custom := filepath.Join(utils.GetSubdir("templates"), app, "docker-compose.yml")
-		if b, e := os.ReadFile(custom); e == nil {
-			data = b
-			fmt.Println("ℹ️  Usando plantilla personalizada:", custom)
-		} else {
-			if !errors.Is(e, os.ErrNotExist) {
-				return fmt.Errorf("error leyendo plantilla personalizada %s: %w", custom, e)
-			}
-			return fmt.Errorf("no se encontró plantilla embebida para %s (%v) ni personalizada en %s", app, err, custom)
-		}
-	} else {
-		fmt.Println("📦 Usando plantilla embebida para:", app)
+		return fmt.Errorf("no se encontró plantilla embebida para %s: %w", app.Template, err)
 	}
+	fmt.Println("📦 Usando plantilla embebida para:", app.Template)
 
-	if err := os.WriteFile(composePath, data, 0o644); err != nil {
-		return fmt.Errorf("error escribiendo docker-compose.yml: %w", err)
+	values := setValues(app)
+
+	fmt.Println(values)
+
+	final := utils.ReplacePlaceholders(string(data), values)
+
+	if err := os.WriteFile(composePath, []byte(final), 0o644); err != nil {
+		return fmt.Errorf("error escribiendo archivo docker-compose: %w", err)
 	}
-
-	// === 2) .env: crear desde .env.example si no existe ===
-	if _, err := os.Stat(envPath); errors.Is(err, os.ErrNotExist) {
-		// Intentar leer .env.example embebido
-		if example, e := assets.ReadEnvExample(app); e == nil {
-			values := map[string]string{}
-
-			// Genera APP_KEY solo si el ejemplo lo pide
-			if strings.Contains(string(example), "{{APP_KEY}}") {
-				if key, genErr := utils.GenerateLaravelAppKey(); genErr == nil {
-					values["APP_KEY"] = key
-				} else {
-					return fmt.Errorf("no se pudo generar APP_KEY: %w", genErr)
-				}
-			}
-
-			// Si quieres agregar más placeholders globales, hazlo aquí:
-			// p.ej. PUERTOS ALEATORIOS, PASSWORDS, ETC.
-			// if strings.Contains(string(example), "{{MYSQL_PASSWORD}}") {
-			//     values["MYSQL_PASSWORD"] = utils.GeneratePassword(20)
-			// }
-
-			final := utils.ReplacePlaceholders(string(example), values)
-			if writeErr := os.WriteFile(envPath, []byte(final), 0o600); writeErr != nil {
-				return fmt.Errorf("error escribiendo .env: %w", writeErr)
-			}
-			fmt.Println("✅ .env generado desde .env.example")
-		} else if errors.Is(e, os.ErrNotExist) {
-			// Si la app no trae .env.example, crea uno vacío
-			if writeErr := os.WriteFile(envPath, []byte("# .env generado por autohost\n"), 0o600); writeErr != nil {
-				return fmt.Errorf("error creando .env vacío: %w", writeErr)
-			}
-			fmt.Println("ℹ️  Sin .env.example embebido; se creó .env vacío.")
-		} else {
-			return fmt.Errorf("error leyendo .env.example embebido: %w", e)
-		}
-	} else {
-		fmt.Println("ℹ️  .env ya existe; no se sobrescribe.")
-	}
-
-	fmt.Printf("✅ %s instalado correctamente en %s\n", app, appDir)
+	fmt.Println("✅ Archivo docker-compose creado en:", composePath)
 	return nil
 }
 
@@ -100,8 +52,6 @@ func StartApp(app string) error {
 	// Usar Exec con working dir del compose
 	return utils.ExecWithDir(filepath.Dir(ymlPath), "docker", "compose", "-f", ymlPath, "up", "-d")
 }
-
-//modificar todas las ficniones de abajo
 
 // StopApp ejecuta docker compose stop para una app
 func StopApp(app string) error {
@@ -134,8 +84,22 @@ func appComposePath(app string) string {
 	return fmt.Sprintf("%s/docker/compose/%s.yml", utils.GetAutohostDir(), app)
 }
 
-// func TemplateExists(appName string) bool {
-// 	path := filepath.Join(utils.GetTemplateDir(), appName, "docker-compose.yml")
-// 	_, err := os.Stat(path)
-// 	return err == nil
-// }
+func setValues(app config.AppConfig) map[string]string {
+	values := map[string]string{}
+
+	values["$service-name"] = app.Name // AppName
+	values["$port"] = app.Port         // AppPort
+	if app.MySQL != nil {
+		values["$mysql-user"] = app.MySQL.User                  // UserName MySQL
+		values["$mysql-password"] = app.MySQL.Password          // PasswordUser MySQL
+		values["$mysql-root-password"] = app.MySQL.RootPassword // RootPassword MySQL
+		values["$mysql-database"] = app.MySQL.Database + "-db"  // DatabaseName MySQL
+		values["$mysql-port"] = app.MySQL.Port                  // Port MySQL
+	}
+
+	if app.Template == "bookstack" {
+		values["$app-key"] = utils.GenerateRandomString(64) // AppKey BookStack
+	}
+
+	return values
+}
