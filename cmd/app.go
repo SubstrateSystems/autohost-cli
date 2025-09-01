@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"autohost-cli/internal/config"
 	"autohost-cli/internal/helpers/app"
 	"autohost-cli/utils"
 	"bufio"
@@ -10,51 +9,6 @@ import (
 
 	"github.com/spf13/cobra"
 )
-
-func askAppConfig(reader *bufio.Reader) config.AppConfig {
-	defaultAppName := "appdemo"
-	name := utils.AskInput(reader, "📝 Nombre de la aplicación", defaultAppName)
-
-	defaultTemplate := "bookstack"
-	var template string
-	for {
-		template = utils.AskInput(reader, "📦 Tipo de template (bookstack, nextcloud, redis, mysql)", defaultTemplate)
-		if config.ValidTemplates[template] {
-			break
-		}
-		fmt.Println("❌ Template no válido. Opciones: bookstack, nextcloud, redis, mysql.")
-	}
-
-	port := utils.AskInput(reader, "🔌 Puerto del host a utilizar", config.TemplatePorts[template])
-
-	var mysqlCfg *config.MySQLConfig
-	if template == "nextcloud" || template == "bookstack" {
-		mysqlCfg = askMySQLConfig(reader, name)
-	}
-
-	return config.AppConfig{
-		Name:     name,
-		Template: template,
-		Port:     port,
-		MySQL:    mysqlCfg,
-	}
-}
-
-func askMySQLConfig(reader *bufio.Reader, name string) *config.MySQLConfig {
-	fmt.Println("\n⚙️  Configuración de MySQL:")
-	user := utils.AskInput(reader, "MySQL usuario", "ah_user")
-	pass := utils.AskInput(reader, "MySQL contraseña", "autohost")
-	rootPass := utils.AskInput(reader, "MySQL contraseña root", "autohost")
-	db := utils.AskInput(reader, "MySQL base", name)
-	port := utils.AskInput(reader, "MySQL puerto", "3306")
-	return &config.MySQLConfig{
-		User:         user,
-		Password:     pass,
-		RootPassword: rootPass,
-		Database:     db,
-		Port:         port,
-	}
-}
 
 var appCmd = &cobra.Command{
 	Use:   "app",
@@ -66,7 +20,7 @@ var appInstallCmd = &cobra.Command{
 	Short: "Instala una aplicación (por ejemplo: nextcloud, bookstack, etc.)",
 	Run: func(cmd *cobra.Command, args []string) {
 		reader := bufio.NewReader(os.Stdin)
-		cfg := askAppConfig(reader)
+		cfg := app.AskAppConfig(reader)
 
 		if err := app.InstallApp(cfg); err != nil {
 			fmt.Printf("❌ Error al instalar %s: %v\n", cfg.Name, err)

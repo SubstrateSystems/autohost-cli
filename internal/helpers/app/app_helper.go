@@ -55,19 +55,23 @@ func StartApp(app string) error {
 
 // StopApp ejecuta docker compose stop para una app
 func StopApp(app string) error {
-	cmd := exec.Command("docker", "compose", "-f", appComposePath(app), "stop")
-	return cmd.Run()
+	ymlPath := filepath.Join(utils.GetSubdir("apps"), app, "docker-compose.yml")
+
+	return utils.ExecWithDir(filepath.Dir(ymlPath), "docker", "compose", "-f", ymlPath, "stop")
 }
 
 // RemoveApp ejecuta docker compose down para una app
 func RemoveApp(app string) error {
-	cmd := exec.Command("docker", "compose", "-f", appComposePath(app), "down")
-	return cmd.Run()
+	ymlPath := filepath.Join(utils.GetSubdir("apps"), app, "docker-compose.yml")
+
+	return utils.ExecWithDir(filepath.Dir(ymlPath), "docker", "compose", "-f", ymlPath, "down")
 }
 
 // GetAppStatus devuelve si los contenedores están "running", "exited", etc.
 func GetAppStatus(app string) (string, error) {
-	cmd := exec.Command("docker", "compose", "-f", appComposePath(app), "ps", "--status=running")
+	ymlPath := filepath.Join(utils.GetSubdir("apps"), app, "docker-compose.yml")
+
+	cmd := exec.Command("docker", "compose", "-f", ymlPath, "ps", "--status=running")
 	out, err := cmd.Output()
 	if err != nil {
 		return "", err
@@ -76,12 +80,6 @@ func GetAppStatus(app string) (string, error) {
 		return "en ejecución", nil
 	}
 	return "detenida", nil
-}
-
-// appComposePath devuelve la ruta al archivo docker-compose.yml de la app
-func appComposePath(app string) string {
-	fmt.Println(app)
-	return fmt.Sprintf("%s/docker/compose/%s.yml", utils.GetAutohostDir(), app)
 }
 
 func setValues(app config.AppConfig) map[string]string {

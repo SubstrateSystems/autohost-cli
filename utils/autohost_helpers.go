@@ -3,6 +3,7 @@ package utils
 import (
 	"bufio"
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"strconv"
@@ -19,13 +20,6 @@ func ExecShell(script string) error {
 	return Exec("bash", "-eo", "pipefail", "-c", script)
 }
 
-// func Exec(cmdName string, args ...string) error {
-// 	cmd := exec.Command(cmdName, args...)
-// 	cmd.Stdout = os.Stdout
-// 	cmd.Stderr = os.Stderr
-// 	return cmd.Run()
-// }
-
 func ExecWithDir(dir string, cmdName string, args ...string) error {
 	cmd := exec.Command(cmdName, args...)
 	cmd.Dir = dir
@@ -33,16 +27,6 @@ func ExecWithDir(dir string, cmdName string, args ...string) error {
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
-
-// func ExecShell(command string) {
-// 	cmd := exec.Command("sh", "-c", command)
-// 	cmd.Stdout = os.Stdout
-// 	cmd.Stderr = os.Stderr
-// 	if err := cmd.Run(); err != nil {
-// 		fmt.Println("❌ Error ejecutando comando:", err)
-// 		os.Exit(1)
-// 	}
-// }
 
 func Confirm(prompt string) bool {
 	fmt.Print(prompt)
@@ -67,4 +51,32 @@ func AskOption(prompt string, options []string) string {
 		}
 		fmt.Println("❌ Opción inválida, intenta de nuevo.")
 	}
+}
+
+func ValidPort(portStr string) (int, error) {
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return 0, fmt.Errorf("puerto inválido: %s", portStr)
+	}
+
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return 0, fmt.Errorf("el puerto %d ya está en uso", port)
+	}
+	ln.Close()
+
+	return port, nil
+}
+
+func AskAppPort(reader *bufio.Reader, message string, port string) string {
+	for {
+		port = AskInput(reader, message, port)
+		// Validar que el puerto sea un número válido y esté libre
+		if _, err := ValidPort(port); err == nil {
+			break
+		} else {
+			fmt.Println("❌", err)
+		}
+	}
+	return port
 }

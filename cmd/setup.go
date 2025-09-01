@@ -29,6 +29,10 @@ var setupCmd = &cobra.Command{
 		if !docker.DockerInstalled() {
 			if utils.Confirm("⚠️ Docker no está instalado. ¿Deseas instalarlo automáticamente? [y/N]: ") {
 				docker.InstallDocker()
+				docker.CreateDockerNetwork()
+				fmt.Println("✅ Docker instalado correctamente.")
+				fmt.Println("✅ Red Docker 'autohost_net' creada.")
+				fmt.Println("🔄 Reiniciando sesión para aplicar cambios de grupo...")
 			} else {
 				fmt.Println("🚫 Instalación cancelada. Instala Docker manualmente y vuelve a ejecutar el setup.")
 				return
