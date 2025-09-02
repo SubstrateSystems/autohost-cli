@@ -4,28 +4,28 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"autohost-cli/cmd/app"
+	"autohost-cli/db"
+	"autohost-cli/internal/di"
+	"autohost-cli/internal/repo"
+	"autohost-cli/internal/services"
+	"autohost-cli/utils"
+	"database/sql"
+	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "autohost-cli",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+var (
+	rootCmd = &cobra.Command{
+		Use:   "autohost-cli",
+		Short: "CLI para autohosting con Docker/Tailscale/Cloudflare/Caddy",
+	}
+	deps di.Deps
+)
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
-}
-
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -34,13 +34,34 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	sqlitePath := filepath.Join(utils.GetAutohostDir(), "autohost.db")
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.autohost-cli.yaml)")
+	dbc, err := db.Open(sqlitePath)
+	if err != nil {
+		fmt.Println("DB open error:", err)
+		os.Exit(1)
+	}
+	if err := db.Migrate(dbc); err != nil {
+		fmt.Println("DB migrate error:", err)
+		os.Exit(1)
+	}
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
+	deps = buildDeps(dbc.DB)
+	rootCmd.AddCommand(app.AppCmd(deps))
+
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func buildDeps(sqlDB *sql.DB) di.Deps {
+	installedRepo := repo.NewInstalledRepo(sqlDB)
+
+	return di.Deps{
+		DB: sqlDB,
+		Repos: di.Repos{
+			Installed: installedRepo,
+		},
+		Services: di.Services{
+			App: services.AppService{Installed: installedRepo},
+		},
+	}
 }
