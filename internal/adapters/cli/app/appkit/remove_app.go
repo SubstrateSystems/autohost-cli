@@ -1,4 +1,4 @@
-package appkit
+package appKit
 
 import (
 	"autohost-cli/utils"

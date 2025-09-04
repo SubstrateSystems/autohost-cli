@@ -2,10 +2,9 @@
 package di
 
 import (
+	"autohost-cli/internal/adapters/storage/sqlite"
+	"autohost-cli/internal/app"
 	"database/sql"
-
-	"autohost-cli/internal/repo"
-	"autohost-cli/internal/services"
 )
 
 type Deps struct {
@@ -15,9 +14,9 @@ type Deps struct {
 }
 
 type Repos struct {
-	Installed *repo.InstalledRepo
+	Installed *sqlite.InstalledRepo
 }
 
 type Services struct {
-	App services.AppService
+	App app.AppService
 }

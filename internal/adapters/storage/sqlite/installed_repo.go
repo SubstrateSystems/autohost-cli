@@ -1,11 +1,10 @@
-// internal/repo/installed.go
-package repo
+package sqlite
 
 import (
 	"context"
 	"database/sql"
 
-	"autohost-cli/internal/models"
+	"autohost-cli/internal/domain"
 )
 
 type InstalledRepo struct {
@@ -16,7 +15,7 @@ func NewInstalledRepo(db *sql.DB) *InstalledRepo {
 	return &InstalledRepo{db: db}
 }
 
-func (r *InstalledRepo) List(ctx context.Context) ([]models.InstalledApp, error) {
+func (r *InstalledRepo) List(ctx context.Context) ([]domain.InstalledApp, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT id, name, created_at
 		FROM installed_apps
@@ -27,9 +26,9 @@ func (r *InstalledRepo) List(ctx context.Context) ([]models.InstalledApp, error)
 	}
 	defer rows.Close()
 
-	var out []models.InstalledApp
+	var out []domain.InstalledApp
 	for rows.Next() {
-		var a models.InstalledApp
+		var a domain.InstalledApp
 		if err := rows.Scan(&a.ID, &a.Name, &a.CreatedAt); err != nil {
 			return nil, err
 		}
@@ -38,7 +37,7 @@ func (r *InstalledRepo) List(ctx context.Context) ([]models.InstalledApp, error)
 	return out, rows.Err()
 }
 
-func (r *InstalledRepo) Add(ctx context.Context, app models.InstalledApp) error {
+func (r *InstalledRepo) Add(ctx context.Context, app domain.InstalledApp) error {
 	_, err := r.db.ExecContext(ctx, `
 		INSERT INTO installed_apps (name, catalog_app_id) 
 		VALUES (?, ?)

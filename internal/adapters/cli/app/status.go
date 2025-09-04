@@ -1,7 +1,7 @@
 package app
 
 import (
-	"autohost-cli/internal/helpers/app_helper"
+	appKit "autohost-cli/internal/adapters/cli/app/appkit"
 	"autohost-cli/utils"
 	"fmt"
 
@@ -14,7 +14,7 @@ func appStatusCmd() *cobra.Command {
 		Short: "Muestra el estado de una aplicación",
 		Args:  cobra.ExactArgs(1),
 		Run: utils.WithAppName(func(appName string) {
-			status, err := app_helper.GetAppStatus(appName)
+			status, err := appKit.GetAppStatus(appName)
 			if err != nil {
 				fmt.Printf("❌ Error al obtener el estado de %s: %v\n", appName, err)
 			} else {

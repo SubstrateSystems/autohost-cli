@@ -1,7 +1,7 @@
 package app
 
 import (
-	"autohost-cli/internal/helpers/app_helper"
+	appKit "autohost-cli/internal/adapters/cli/app/appkit"
 	"autohost-cli/utils"
 	"fmt"
 
@@ -14,7 +14,7 @@ func appStopCmd() *cobra.Command {
 		Short: "Detiene una aplicación",
 		Args:  cobra.ExactArgs(1),
 		Run: utils.WithAppName(func(appName string) {
-			err := app_helper.StopApp(appName)
+			err := appKit.StopApp(appName)
 
 			if err != nil {
 				fmt.Printf("❌ No se pudo detener %s: %v\n", appName, err)

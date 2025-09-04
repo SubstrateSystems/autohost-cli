@@ -1,4 +1,4 @@
-package initializer_helper
+package initializerkit
 
 import (
 	"autohost-cli/utils"

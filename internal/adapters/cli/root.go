@@ -9,9 +9,9 @@ import (
 	"autohost-cli/internal/adapters/cli/docker"
 	"autohost-cli/internal/adapters/cli/initializer"
 	"autohost-cli/internal/adapters/cli/setup"
-	"autohost-cli/internal/di"
-	"autohost-cli/internal/repo"
-	"autohost-cli/internal/services"
+	"autohost-cli/internal/adapters/storage/sqlite"
+	appInternal "autohost-cli/internal/app"
+	"autohost-cli/internal/platform/di"
 	"autohost-cli/utils"
 	"database/sql"
 	"fmt"
@@ -59,7 +59,7 @@ func init() {
 }
 
 func buildDeps(sqlDB *sql.DB) di.Deps {
-	installedRepo := repo.NewInstalledRepo(sqlDB)
+	installedRepo := sqlite.NewInstalledRepo(sqlDB)
 
 	return di.Deps{
 		DB: sqlDB,
@@ -67,7 +67,7 @@ func buildDeps(sqlDB *sql.DB) di.Deps {
 			Installed: installedRepo,
 		},
 		Services: di.Services{
-			App: services.AppService{Installed: installedRepo},
+			App: appInternal.AppService{Installed: installedRepo},
 		},
 	}
 }

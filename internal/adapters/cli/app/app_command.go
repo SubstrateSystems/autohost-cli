@@ -1,7 +1,7 @@
 package app
 
 import (
-	"autohost-cli/internal/di"
+	"autohost-cli/internal/platform/di"
 
 	"github.com/spf13/cobra"
 )

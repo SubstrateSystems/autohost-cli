@@ -1,9 +1,9 @@
 package app
 
 import (
-	"autohost-cli/internal/di"
-	"autohost-cli/internal/helpers/app_helper"
-	"autohost-cli/internal/models"
+	appKit "autohost-cli/internal/adapters/cli/app/appkit"
+	"autohost-cli/internal/domain"
+	"autohost-cli/internal/platform/di"
 	"autohost-cli/utils"
 	"bufio"
 	"fmt"
@@ -18,16 +18,16 @@ func appInstallCmd(deps di.Deps) *cobra.Command {
 		Short: "Instala una aplicación (por ejemplo: nextcloud, bookstack, etc.)",
 		Run: func(cmd *cobra.Command, args []string) {
 			reader := bufio.NewReader(os.Stdin)
-			cfg := app_helper.AskAppConfig(reader)
+			cfg := appKit.AskAppConfig(reader)
 
-			if err := app_helper.InstallApp(cfg); err != nil {
+			if err := appKit.InstallApp(cfg); err != nil {
 				fmt.Printf("❌ Error al instalar %s: %v\n", cfg.Name, err)
 				return
 			}
 
 			startApp := utils.AskInput(reader, fmt.Sprintf("¿Deseas iniciar %s ahora? [Y/N]: ", cfg.Name), "Y")
 
-			appModel := models.InstalledApp{
+			appModel := domain.InstalledApp{
 				Name:         cfg.Name,
 				CatalogAppID: cfg.Template,
 			}
@@ -39,7 +39,7 @@ func appInstallCmd(deps di.Deps) *cobra.Command {
 			}
 
 			if startApp == "Y" {
-				if err := app_helper.StartApp(cfg.Name); err != nil {
+				if err := appKit.StartApp(cfg.Name); err != nil {
 					fmt.Printf("❌ Error al iniciar %s: %v\n", cfg.Name, err)
 
 				} else {

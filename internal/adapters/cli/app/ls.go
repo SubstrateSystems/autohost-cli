@@ -2,7 +2,7 @@
 package app
 
 import (
-	"autohost-cli/internal/di"
+	"autohost-cli/internal/platform/di"
 	"context"
 	"fmt"
 	"os"

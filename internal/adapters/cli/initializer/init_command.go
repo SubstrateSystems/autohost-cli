@@ -1,7 +1,7 @@
 package initializer
 
 import (
-	"autohost-cli/internal/helpers/initializer_helper"
+	initializerkit "autohost-cli/internal/adapters/cli/initializer/initializerKit"
 	"fmt"
 	"os"
 
@@ -13,7 +13,7 @@ func InitCommand() *cobra.Command {
 		Use:   "init",
 		Short: "Inicializa el entorno de AutoHost en ~/.autohost",
 		Run: func(cmd *cobra.Command, args []string) {
-			err := initializer_helper.EnsureAutohostDirs()
+			err := initializerkit.EnsureAutohostDirs()
 			if err != nil {
 				fmt.Println("❌ Error al crear estructura de carpetas:", err)
 				os.Exit(1)

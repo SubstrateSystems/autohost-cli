@@ -1,15 +1,15 @@
-package appkit
+package appKit
 
 import (
 	"autohost-cli/assets"
-	"autohost-cli/internal/config"
+	"autohost-cli/internal/domain"
 	"autohost-cli/utils"
 	"fmt"
 	"os"
 	"path/filepath"
 )
 
-func InstallApp(app config.AppConfig) error {
+func InstallApp(app domain.AppConfig) error {
 	appDir := filepath.Join(utils.GetSubdir("apps"), app.Name)
 	composePath := filepath.Join(appDir, "docker-compose.yml")
 
@@ -36,7 +36,7 @@ func InstallApp(app config.AppConfig) error {
 	return nil
 }
 
-func setValues(app config.AppConfig) map[string]string {
+func setValues(app domain.AppConfig) map[string]string {
 	values := map[string]string{}
 
 	values["$service-name"] = app.Name // AppName

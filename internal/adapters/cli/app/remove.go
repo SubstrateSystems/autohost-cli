@@ -1,7 +1,7 @@
 package app
 
 import (
-	"autohost-cli/internal/helpers/app_helper"
+	appKit "autohost-cli/internal/adapters/cli/app/appkit"
 	"autohost-cli/utils"
 	"fmt"
 
@@ -15,7 +15,7 @@ func appRemoveCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Run: utils.WithAppName(func(appName string) {
 			if utils.Confirm(fmt.Sprintf("¿Estás seguro que quieres eliminar %s? [y/N]: ", appName)) {
-				err := app_helper.RemoveApp(appName)
+				err := appKit.RemoveApp(appName)
 				if err != nil {
 					fmt.Printf("❌ No se pudo eliminar %s: %v\n", appName, err)
 				} else {
