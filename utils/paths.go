@@ -5,14 +5,6 @@ import (
 	"path/filepath"
 )
 
-const (
-	ConfigDir    = "/etc/autohost"
-	TemplatesDir = "/opt/autohost/templates"
-	DockerDir    = "/opt/autohost/docker"
-	LogsDir      = "/var/lib/autohost/logs"
-	StateDir     = "/var/lib/autohost/state"
-)
-
 func GetAutohostDir() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
