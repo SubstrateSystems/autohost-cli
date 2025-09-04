@@ -2,7 +2,7 @@ package app
 
 import (
 	"autohost-cli/internal/di"
-	"autohost-cli/internal/helpers/app"
+	"autohost-cli/internal/helpers/app_helper"
 	"autohost-cli/internal/models"
 	"autohost-cli/utils"
 	"bufio"
@@ -18,9 +18,9 @@ func appInstallCmd(deps di.Deps) *cobra.Command {
 		Short: "Instala una aplicación (por ejemplo: nextcloud, bookstack, etc.)",
 		Run: func(cmd *cobra.Command, args []string) {
 			reader := bufio.NewReader(os.Stdin)
-			cfg := app.AskAppConfig(reader)
+			cfg := app_helper.AskAppConfig(reader)
 
-			if err := app.InstallApp(cfg); err != nil {
+			if err := app_helper.InstallApp(cfg); err != nil {
 				fmt.Printf("❌ Error al instalar %s: %v\n", cfg.Name, err)
 				return
 			}
@@ -39,7 +39,7 @@ func appInstallCmd(deps di.Deps) *cobra.Command {
 			}
 
 			if startApp == "Y" {
-				if err := app.StartApp(cfg.Name); err != nil {
+				if err := app_helper.StartApp(cfg.Name); err != nil {
 					fmt.Printf("❌ Error al iniciar %s: %v\n", cfg.Name, err)
 
 				} else {

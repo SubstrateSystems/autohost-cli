@@ -5,6 +5,9 @@ package cmd
 
 import (
 	"autohost-cli/cmd/app"
+	"autohost-cli/cmd/docker"
+	"autohost-cli/cmd/initializer"
+	"autohost-cli/cmd/setup"
 	"autohost-cli/db"
 	"autohost-cli/internal/di"
 	"autohost-cli/internal/repo"
@@ -48,6 +51,10 @@ func init() {
 
 	deps = buildDeps(dbc.DB)
 	rootCmd.AddCommand(app.AppCmd(deps))
+	rootCmd.AddCommand(initializer.InitCommand())
+	rootCmd.AddCommand(setup.SetupCmd())
+	rootCmd.AddCommand(docker.DockerCmd())
+	// rootCmd.AddCommand(caddy.CaddyCmd())
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

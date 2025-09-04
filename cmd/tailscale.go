@@ -129,20 +129,6 @@ var tailscaleStatusCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	tailscaleCmd.AddCommand(tailscaleInstallCmd)
-	tailscaleCmd.AddCommand(tailscaleLoginCmd)
-	tailscaleCmd.AddCommand(tailscaleLogoutCmd)
-	tailscaleCmd.AddCommand(tailscaleStatusCmd)
-	tailscaleCmd.AddCommand(tailscaleSplitDnsCmd)
-	tailscaleSplitDnsCmd.Flags().String("domain", "", "Dominio a resolver vía Split DNS (ej. maza-server)")
-	tailscaleSplitDnsCmd.Flags().String("nameservers", "", "Lista de resolvers (coma-separados), ej. 100.112.92.90,1.1.1.1")
-	tailscaleSplitDnsCmd.Flags().String("search-paths", "", "(Opcional) dominios de búsqueda, coma-separados")
-	tailscaleSplitDnsCmd.Flags().String("tailnet", "", "(Opcional) tailnet; si no se indica usa TAILSCALE_TAILNET o '-'")
-
-	rootCmd.AddCommand(tailscaleCmd)
-}
-
 func splitAndTrim(s string) []string {
 	if strings.TrimSpace(s) == "" {
 		return nil
@@ -156,4 +142,18 @@ func splitAndTrim(s string) []string {
 		}
 	}
 	return out
+}
+
+func init() {
+	tailscaleCmd.AddCommand(tailscaleInstallCmd)
+	tailscaleCmd.AddCommand(tailscaleLoginCmd)
+	tailscaleCmd.AddCommand(tailscaleLogoutCmd)
+	tailscaleCmd.AddCommand(tailscaleStatusCmd)
+	tailscaleCmd.AddCommand(tailscaleSplitDnsCmd)
+	tailscaleSplitDnsCmd.Flags().String("domain", "", "Dominio a resolver vía Split DNS (ej. maza-server)")
+	tailscaleSplitDnsCmd.Flags().String("nameservers", "", "Lista de resolvers (coma-separados), ej. 100.112.92.90,1.1.1.1")
+	tailscaleSplitDnsCmd.Flags().String("search-paths", "", "(Opcional) dominios de búsqueda, coma-separados")
+	tailscaleSplitDnsCmd.Flags().String("tailnet", "", "(Opcional) tailnet; si no se indica usa TAILSCALE_TAILNET o '-'")
+
+	rootCmd.AddCommand(tailscaleCmd)
 }

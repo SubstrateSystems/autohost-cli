@@ -1,4 +1,4 @@
-package app
+package app_helper
 
 import (
 	"autohost-cli/internal/config"
