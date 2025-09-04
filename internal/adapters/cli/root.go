@@ -1,14 +1,14 @@
 /*
 Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 */
-package cmd
+package cli
 
 import (
-	"autohost-cli/cmd/app"
-	"autohost-cli/cmd/docker"
-	"autohost-cli/cmd/initializer"
-	"autohost-cli/cmd/setup"
 	"autohost-cli/db"
+	"autohost-cli/internal/adapters/cli/app"
+	"autohost-cli/internal/adapters/cli/docker"
+	"autohost-cli/internal/adapters/cli/initializer"
+	"autohost-cli/internal/adapters/cli/setup"
 	"autohost-cli/internal/di"
 	"autohost-cli/internal/repo"
 	"autohost-cli/internal/services"

@@ -1,5 +1,4 @@
-// internal/models/app.go
-package models
+package domain
 
 import "time"
 
