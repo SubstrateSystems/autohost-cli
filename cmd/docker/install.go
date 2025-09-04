@@ -1,7 +1,7 @@
 package docker
 
 import (
-	"autohost-cli/internal/helpers/docker"
+	"autohost-cli/internal/helpers/docker_helper"
 	"autohost-cli/utils"
 	"fmt"
 
@@ -18,24 +18,16 @@ func dockerInstallCmd() *cobra.Command {
 				return
 			}
 
-			if docker.DockerInstalled() {
+			if docker_helper.DockerInstalled() {
 				fmt.Println("✅ Docker ya está instalado.")
 			} else {
 				fmt.Println("🔧 Instalando Docker...")
-				docker.InstallDocker()
+				docker_helper.InstallDocker()
 			}
 
 			if utils.Confirm("¿Agregar usuario al grupo docker? [y/N]: ") {
-				docker.AddUserToDockerGroup()
+				docker_helper.AddUserToDockerGroup()
 			}
-
-			// Guardar estado
-			// err := docker.SaveStatus("docker_installed", true)
-			// if err != nil {
-			// 	fmt.Println("⚠️ No se pudo guardar el estado:", err)
-			// } else {
-			// 	fmt.Println("📝 Estado de Docker guardado en ~/.autohost/state/status.json")
-			// }
 		},
 	}
 }

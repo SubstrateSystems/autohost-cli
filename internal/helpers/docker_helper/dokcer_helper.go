@@ -1,4 +1,4 @@
-package docker
+package docker_helper
 
 import (
 	"autohost-cli/utils"

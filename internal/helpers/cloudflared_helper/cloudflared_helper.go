@@ -1,4 +1,4 @@
-package cloudflared
+package cloudflared_helper
 
 import (
 	"autohost-cli/utils"

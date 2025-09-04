@@ -1,4 +1,4 @@
-package initializer
+package initializer_helper
 
 import (
 	"autohost-cli/utils"

@@ -54,7 +54,6 @@ func init() {
 	rootCmd.AddCommand(initializer.InitCommand())
 	rootCmd.AddCommand(setup.SetupCmd())
 	rootCmd.AddCommand(docker.DockerCmd())
-	// rootCmd.AddCommand(caddy.CaddyCmd())
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

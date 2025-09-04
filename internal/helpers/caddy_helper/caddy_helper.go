@@ -1,4 +1,4 @@
-package caddy
+package caddy_helper
 
 import (
 	"autohost-cli/utils"

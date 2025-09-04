@@ -1,11 +1,11 @@
 package setup
 
 import (
-	"autohost-cli/internal/helpers/caddy"
-	"autohost-cli/internal/helpers/cloudflared"
-	"autohost-cli/internal/helpers/docker"
-	"autohost-cli/internal/helpers/initializer"
-	"autohost-cli/internal/helpers/tailscale"
+	"autohost-cli/internal/helpers/caddy_helper"
+	"autohost-cli/internal/helpers/cloudflared_helper"
+	"autohost-cli/internal/helpers/docker_helper"
+	"autohost-cli/internal/helpers/initializer_helper"
+	"autohost-cli/internal/helpers/tailscale_helper"
 	"autohost-cli/utils"
 	"bufio"
 	"fmt"
@@ -24,12 +24,12 @@ func SetupCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("\n🔧 Iniciando configuración del servidor...")
 
-			initializer.EnsureAutohostDirs()
+			initializer_helper.EnsureAutohostDirs()
 
-			if !docker.DockerInstalled() {
+			if !docker_helper.DockerInstalled() {
 				if utils.Confirm("⚠️ Docker no está instalado. ¿Deseas instalarlo automáticamente? [y/N]: ") {
-					docker.InstallDocker()
-					docker.CreateDockerNetwork()
+					docker_helper.InstallDocker()
+					docker_helper.CreateDockerNetwork()
 					fmt.Println("✅ Docker instalado correctamente.")
 					fmt.Println("✅ Red Docker 'autohost_net' creada.")
 					fmt.Println("🔄 Reiniciando sesión para aplicar cambios de grupo...")
@@ -42,25 +42,25 @@ func SetupCmd() *cobra.Command {
 			}
 
 			if utils.Confirm("¿Deseas agregar tu usuario al grupo 'docker' para usar Docker sin sudo? [y/N]: ") {
-				docker.AddUserToDockerGroup()
+				docker_helper.AddUserToDockerGroup()
 			}
 
 			if utils.Confirm("¿Deseas instalar y configurar Caddy como reverse proxy? [y/N]: ") {
-				caddy.InstallCaddy()
-				caddy.CreateCaddyfile()
+				caddy_helper.InstallCaddy()
+				caddy_helper.CreateCaddyfile()
 			}
 
 			option := utils.AskOption("🔒 ¿Qué tipo de acceso quieres configurar?", []string{"Tailscale (privado)", "Cloudflare Tunnel (público con dominio)"})
 			switch option {
 			case "Tailscale (privado)":
-				tailscale.InstallTailscale()
+				tailscale_helper.InstallTailscale()
 			case "Cloudflare Tunnel (público con dominio)":
-				cloudflared.InstallCloudflared()
+				cloudflared_helper.InstallCloudflared()
 				fmt.Print("Introduce el subdominio para el túnel (ej: blog.misitio.com): ")
 				reader := bufio.NewReader(os.Stdin)
 				domain, _ := reader.ReadString('\n')
 				domain = strings.TrimSpace(domain)
-				cloudflared.ConfigureCloudflareTunnel(domain)
+				cloudflared_helper.ConfigureCloudflareTunnel(domain)
 			}
 
 			fmt.Println("\n✅ Configuración inicial completa.")
