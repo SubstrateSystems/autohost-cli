@@ -1,0 +1,24 @@
+services:
+  $service-name:
+    image: postgres:15
+    container_name: $service-name
+    restart: always
+    ports:
+      - "$port:5432"
+    environment:
+      POSTGRES_DB: $postgres-database
+      POSTGRES_USER: $postgres-user
+      POSTGRES_PASSWORD: $postgres-password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - autohost_net
+
+volumes:
+  postgres_data:
+
+networks:
+  autohost_net:
+    external: true
