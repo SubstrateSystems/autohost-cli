@@ -49,6 +49,12 @@ func init() {
 		os.Exit(1)
 	}
 
+	// Ejecutar seeding después de migraciones
+	if err := db.Seed(dbc); err != nil {
+		fmt.Println("DB seed error:", err)
+		os.Exit(1)
+	}
+
 	deps = buildDeps(dbc.DB)
 	rootCmd.AddCommand(app.AppCmd(deps))
 	rootCmd.AddCommand(initializer.InitCommand())
@@ -60,14 +66,17 @@ func init() {
 
 func buildDeps(sqlDB *sql.DB) di.Deps {
 	installedRepo := sqlite.NewInstalledRepo(sqlDB)
+	catalogRepo := sqlite.NewCatalogRepo(sqlDB)
 
 	return di.Deps{
 		DB: sqlDB,
 		Repos: di.Repos{
 			Installed: installedRepo,
+			Catalog:   catalogRepo,
 		},
 		Services: di.Services{
-			App: appInternal.AppService{Installed: installedRepo},
+			App:     appInternal.AppService{Installed: installedRepo},
+			Catalog: appInternal.CatalogService{Catalog: catalogRepo},
 		},
 	}
 }
