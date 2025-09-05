@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -38,7 +39,7 @@ func appInstallCmd(deps di.Deps) *cobra.Command {
 				return
 			}
 
-			if startApp == "Y" {
+			if strings.ToLower(startApp) == "y" {
 				if err := appKit.StartApp(cfg.Name); err != nil {
 					fmt.Printf("❌ Error al iniciar %s: %v\n", cfg.Name, err)
 
