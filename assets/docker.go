@@ -17,18 +17,3 @@ func ReadCompose(app string) ([]byte, error) {
 func ReadEnvExample(app string) ([]byte, error) {
 	return fs.ReadFile(dockerFS, filepath.Join("docker", app, ".env.example"))
 }
-
-// ListApps devuelve todas las apps que tienen plantilla
-func ListApps() ([]string, error) {
-	entries, err := fs.ReadDir(dockerFS, "docker")
-	if err != nil {
-		return nil, err
-	}
-	var apps []string
-	for _, e := range entries {
-		if e.IsDir() {
-			apps = append(apps, e.Name())
-		}
-	}
-	return apps, nil
-}
