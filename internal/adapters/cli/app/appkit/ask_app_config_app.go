@@ -7,9 +7,18 @@ import (
 	"fmt"
 )
 
-func AskAppConfig(reader *bufio.Reader) domain.AppConfig {
+func AskAppConfig(reader *bufio.Reader, ensureUnique func(string) error) domain.AppConfig {
 	defaultAppName := "appdemo"
-	name := utils.AskInput(reader, "📝 Nombre de la aplicación", defaultAppName)
+	var name string
+	for {
+		name = utils.AskInput(reader, "📝 Nombre de la aplicación", defaultAppName)
+		if err := ensureUnique(name); err != nil {
+			fmt.Printf("⚠️ %v\n", err)
+			continue
+		}
+		break
+	}
+	// name := utils.AskInput(reader, "📝 Nombre de la aplicación", defaultAppName)
 
 	defaultTemplate := "bookstack"
 

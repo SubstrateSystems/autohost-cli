@@ -14,3 +14,7 @@ type AppService struct {
 func (s AppService) ListInstalled(ctx context.Context) ([]domain.InstalledApp, error) {
 	return s.Installed.List(ctx)
 }
+
+func (s AppService) IsAppInstalled(ctx context.Context, name string) (bool, error) {
+	return s.Installed.IsInstalledApp(ctx, name)
+}

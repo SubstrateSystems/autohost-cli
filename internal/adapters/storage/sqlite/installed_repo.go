@@ -44,3 +44,15 @@ func (r *InstalledRepo) Add(ctx context.Context, app domain.InstalledApp) error 
 	`, app.Name, app.CatalogAppID)
 	return err
 }
+
+func (r *InstalledRepo) IsInstalledApp(ctx context.Context, name string) (bool, error) {
+	var exists bool
+	err := r.db.QueryRowContext(ctx, `
+		SELECT EXISTS(
+			SELECT 1 FROM installed_apps WHERE name = ?
+		)`, name).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
