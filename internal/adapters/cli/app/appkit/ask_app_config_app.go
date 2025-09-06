@@ -22,10 +22,29 @@ func AskAppConfig(reader *bufio.Reader, ensureUnique func(string) error) domain.
 
 	defaultTemplate := "bookstack"
 
-	template := utils.AskInput(reader, "📦 Tipo de template (bookstack, nextcloud, redis, mysql)", defaultTemplate)
+	template := utils.AskInput(reader, "📦 Tipo de template (bookstack, nextcloud, redis, mysql, postgres)", defaultTemplate)
+
+	if template == "mysql" {
+		mysqlCfg := AskMySQLConfig(reader, name)
+		return domain.AppConfig{
+			Name:     name,
+			Template: template,
+			Port:     mysqlCfg.Port,
+			MySQL:    mysqlCfg,
+		}
+	}
+
+	if template == "postgres" {
+		postgresCfg := AskMyPostgresConfig(reader, name)
+		return domain.AppConfig{
+			Name:     name,
+			Template: template,
+			Port:     postgresCfg.Port,
+			Postgres: postgresCfg,
+		}
+	}
 
 	port := utils.AskAppPort(reader, "🔌 Puerto del host a utilizar", domain.TemplatePorts[template])
-
 	var mysqlCfg *domain.MySQLConfig
 	if template == "nextcloud" || template == "bookstack" {
 		mysqlCfg = AskMySQLConfig(reader, name)
@@ -54,5 +73,21 @@ func AskMySQLConfig(reader *bufio.Reader, name string) *domain.MySQLConfig {
 		RootPassword: rootPass,
 		Database:     db,
 		Port:         port,
+	}
+}
+
+func AskMyPostgresConfig(reader *bufio.Reader, name string) *domain.PostgresConfig {
+	fmt.Println("\n⚙️  Configuración de Postgres:")
+	user := utils.AskInput(reader, "Postgres usuario", "ah_user")
+	pass := utils.AskInput(reader, "Postgres contraseña", "autohost")
+	db := utils.AskInput(reader, "Postgres base", name)
+
+	port := utils.AskAppPort(reader, "Postgres puerto", "5432")
+
+	return &domain.PostgresConfig{
+		User:     user,
+		Password: pass,
+		Database: db,
+		Port:     port,
 	}
 }

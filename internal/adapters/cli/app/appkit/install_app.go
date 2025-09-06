@@ -10,6 +10,7 @@ import (
 )
 
 func InstallApp(app domain.AppConfig) error {
+	fmt.Printf("%+v\n", app)
 	appDir := filepath.Join(utils.GetSubdir("apps"), app.Name)
 	composePath := filepath.Join(appDir, "docker-compose.yml")
 
@@ -47,6 +48,13 @@ func setValues(app domain.AppConfig) map[string]string {
 		values["$mysql-root-password"] = app.MySQL.RootPassword // RootPassword MySQL
 		values["$mysql-database"] = app.MySQL.Database + "-db"  // DatabaseName MySQL
 		values["$mysql-port"] = app.MySQL.Port                  // Port MySQL
+	}
+
+	if app.Postgres != nil {
+		values["$postgres-user"] = app.Postgres.User         // UserName Postgres
+		values["$postgres-password"] = app.Postgres.Password // PasswordUser Postgres
+		values["$postgres-database"] = app.Postgres.Database // DatabaseName Postgres
+		values["$postgres-port"] = app.Postgres.Port         // Port Postgres
 	}
 
 	if app.Template == "bookstack" {

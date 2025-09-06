@@ -15,8 +15,10 @@ type Deps struct {
 
 type Repos struct {
 	Installed *sqlite.InstalledRepo
+	Catalog   sqlite.CatalogRepo
 }
 
 type Services struct {
-	App app.AppService
+	App     app.AppService
+	Catalog app.CatalogService
 }

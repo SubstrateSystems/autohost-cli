@@ -6,4 +6,5 @@ var TemplatePorts = map[string]string{
 	"nextcloud": "8081",
 	"redis":     "6379",
 	"mysql":     "3306",
+	"postgres":  "5432",
 }
