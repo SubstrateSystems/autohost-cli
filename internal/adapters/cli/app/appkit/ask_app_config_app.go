@@ -18,7 +18,6 @@ func AskAppConfig(reader *bufio.Reader, ensureUnique func(string) error) domain.
 		}
 		break
 	}
-	// name := utils.AskInput(reader, "📝 Nombre de la aplicación", defaultAppName)
 
 	defaultTemplate := "bookstack"
 

@@ -15,6 +15,10 @@ func (s AppService) ListInstalled(ctx context.Context) ([]domain.InstalledApp, e
 	return s.Installed.List(ctx)
 }
 
+func (s AppService) RemoveApp(ctx context.Context, name string) error {
+	return s.Installed.Remove(ctx, name)
+}
+
 func (s AppService) IsAppInstalled(ctx context.Context, name string) (bool, error) {
 	return s.Installed.IsInstalledApp(ctx, name)
 }

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"strings"
 
@@ -24,9 +25,9 @@ func AskInput(reader *bufio.Reader, prompt, def string) string {
 	return val
 }
 
-func WithAppName(fn func(appName string)) func(cmd *cobra.Command, args []string) {
+func WithAppName(fn func(ctx context.Context, appName string)) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		appName := args[0]
-		fn(appName)
+		fn(cmd.Context(), appName)
 	}
 }

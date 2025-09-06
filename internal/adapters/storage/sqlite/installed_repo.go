@@ -45,6 +45,13 @@ func (r *InstalledRepo) Add(ctx context.Context, app domain.InstalledApp) error 
 	return err
 }
 
+func (r *InstalledRepo) Remove(ctx context.Context, name string) error {
+	_, err := r.db.ExecContext(ctx, `
+		DELETE FROM installed_apps WHERE name = ?
+	`, name)
+	return err
+}
+
 func (r *InstalledRepo) IsInstalledApp(ctx context.Context, name string) (bool, error) {
 	var exists bool
 	err := r.db.QueryRowContext(ctx, `

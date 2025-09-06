@@ -15,7 +15,7 @@ func AppCmd(deps di.Deps) *cobra.Command {
 	// agrega subcomandos construidos en este mismo paquete
 	appCmd.AddCommand(appInstallCmd(deps))
 	appCmd.AddCommand(appLsCmd(deps))
-	appCmd.AddCommand(appRemoveCmd())
+	appCmd.AddCommand(appRemoveCmd(deps))
 	appCmd.AddCommand(appStartCmd())
 	appCmd.AddCommand(appStatusCmd())
 	appCmd.AddCommand(appStopCmd())

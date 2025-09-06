@@ -3,6 +3,7 @@ package app
 import (
 	appKit "autohost-cli/internal/adapters/cli/app/appkit"
 	"autohost-cli/utils"
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -13,7 +14,7 @@ func appStopCmd() *cobra.Command {
 		Use:   "stop [nombre]",
 		Short: "Detiene una aplicación",
 		Args:  cobra.ExactArgs(1),
-		Run: utils.WithAppName(func(appName string) {
+		Run: utils.WithAppName(func(ctx context.Context, appName string) {
 			err := appKit.StopApp(appName)
 
 			if err != nil {
