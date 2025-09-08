@@ -34,7 +34,7 @@ func appLsCmd(deps di.Deps) *cobra.Command {
 
 			// salida tabulada
 			w := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
-			fmt.Fprintln(w, "ID\tNAME\tINSTALADA")
+			fmt.Fprintln(w, "ID\tNAME\tINSTALLED AT")
 			for _, a := range apps {
 				createdAt, err := time.Parse("2006-01-02 15:04:05", a.CreatedAt)
 				if err != nil {
