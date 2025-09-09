@@ -2,39 +2,29 @@ project_name: autohost
 
 release:
   draft: false
-  # Marca automáticamente prerelease si el tag contiene -rc, -beta, etc.
   prerelease: auto
 
 builds:
   - id: autohost
     main: ./cmd/autohost
+    binary: autohost
     env:
       - CGO_ENABLED=0
-    goos:
-      - linux
-      - darwin
-    goarch:
-      - amd64
-      - arm64
+    goos: [linux, darwin]      # sin Windows por ahora
+    goarch: [amd64, arm64]
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
       - -X main.commit={{.ShortCommit}}
       - -X main.date={{.Date}}
-    # opcional: reproducible
-    mod_timestamp: '{{ .CommitDate }}'
     flags:
       - -trimpath
-    # desactiva archives: queremos binario plano
-    binary: autohost
 
-# Publicar binarios planos con este nombre exacto: autohost-${os}-${arch}
 archives:
-  - id: skip_archives
+  - id: binario_plano
     builds: [autohost]
     format: binary
     name_template: "{{ .Binary }}-{{ .Os }}-{{ .Arch }}"
-    # sin archivos extra; es binario plano
 
 checksum:
   name_template: "checksums_{{ .Version }}.txt"
@@ -42,7 +32,4 @@ checksum:
 changelog:
   sort: asc
   filters:
-    exclude:
-      - '^docs?:'
-      - '^chore:'
-      - '^test:'
+    exclude: ['^docs?:', '^chore:', '^test:', '^ci:']
