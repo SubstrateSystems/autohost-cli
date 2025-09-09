@@ -7,7 +7,6 @@ import (
 	"autohost-cli/db"
 	"autohost-cli/internal/adapters/cli/app"
 	"autohost-cli/internal/adapters/cli/docker"
-	"autohost-cli/internal/adapters/cli/initializer"
 	"autohost-cli/internal/adapters/cli/setup"
 	"autohost-cli/internal/adapters/storage/sqlite"
 	appInternal "autohost-cli/internal/app"
@@ -37,6 +36,15 @@ func Execute() {
 }
 
 func init() {
+	if !utils.IsInitialized() {
+		err := ensureAutohostDirs()
+		if err != nil {
+			println("❌ Error al crear estructura de carpetas:", err.Error())
+			os.Exit(1)
+		}
+		println("✅ Entorno de AutoHost creado")
+	}
+
 	sqlitePath := filepath.Join(utils.GetAutohostDir(), "autohost.db")
 
 	dbc, err := db.Open(sqlitePath)
@@ -55,9 +63,9 @@ func init() {
 		os.Exit(1)
 	}
 
+	// rootCmd.AddCommand(initializer.InitCommand())
 	deps = buildDeps(dbc.DB)
 	rootCmd.AddCommand(app.AppCmd(deps))
-	rootCmd.AddCommand(initializer.InitCommand())
 	rootCmd.AddCommand(setup.SetupCmd())
 	rootCmd.AddCommand(docker.DockerCmd())
 
@@ -79,4 +87,22 @@ func buildDeps(sqlDB *sql.DB) di.Deps {
 			Catalog: appInternal.CatalogService{Catalog: catalogRepo},
 		},
 	}
+}
+
+func ensureAutohostDirs() error {
+	subdirs := []string{
+		"config",
+		"templates",
+		"apps",
+		"logs",
+		"state",
+		"backups",
+	}
+
+	for _, sub := range subdirs {
+		if err := os.MkdirAll(utils.GetSubdir(sub), 0755); err != nil {
+			return err
+		}
+	}
+	return nil
 }

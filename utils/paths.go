@@ -19,6 +19,6 @@ func GetSubdir(subdir string) string {
 }
 
 func IsInitialized() bool {
-	// _, err := os.Stat(GetAutohostDir())
-	return true
+	_, err := os.Stat(GetAutohostDir())
+	return err == nil
 }
