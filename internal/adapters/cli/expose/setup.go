@@ -2,8 +2,10 @@ package expose
 
 import (
 	"autohost-cli/internal/adapters/caddy"
+	"autohost-cli/internal/adapters/cloudflare"
 	"autohost-cli/internal/adapters/infra"
 	tailscale "autohost-cli/internal/adapters/tilscale"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -11,54 +13,71 @@ import (
 )
 
 func exposeSetupCmd() *cobra.Command {
+	var (
+		mode   string
+		domain string
+		yes    bool
+	)
+
 	cmd := &cobra.Command{
 		Use:   "setup",
 		Short: "Configura la exposición de servicios",
-		Run: func(cmd *cobra.Command, args []string) {
-			caddy.InstallCaddy()
-			caddy.CreateCaddyfile()
-
-			// 1) IP tailscale local (este host será el nameserver)
-			tailIP, err := tailscale.TailscaleIP()
-			if err != nil || tailIP == "" {
-				fmt.Println("❌ No se pudo obtener IP de tailscale (¿logueado?):", err)
-				return
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			// Normaliza y valida mode
+			mode = strings.ToLower(strings.TrimSpace(mode))
+			switch mode {
+			case "private", "public":
+				// ok
+			default:
+				return fmt.Errorf("modo inválido: %q (usa: private|public)", mode)
 			}
 
-			fmt.Printf("🛰️  IP tailnet local: %s\n", tailIP)
+			// Si es público, el dominio es necesario (o la info que quieras exigir)
+			if mode == "public" && strings.TrimSpace(domain) == "" {
+				return errors.New("para --mode=public debes indicar --domain (e.g. --domain ejemplo.com)")
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			switch mode {
+			case "private":
+				fmt.Println("🔒 Modo PRIVATE: sólo tailnet (DNS interno, sin exposición pública).")
+				caddy.InstallCaddy()
+				caddy.CreateCaddyfile()
 
-			// 2) dividir host y apex (zona)
-			host, zone := splitHostZone("test-server")
-			if zone == "" || host == "" {
-				fmt.Printf("subdomain inválido: %s (esperado: host.zona, p.ej. app.maza-server)\n", "test-server")
-				return
+				tailIP, err := tailscale.TailscaleIP()
+				if err != nil || tailIP == "" {
+					return fmt.Errorf("no se pudo obtener IP de tailscale (¿logueado?): %w", err)
+				}
+				fmt.Printf("🛰️  IP tailnet local: %s\n", tailIP)
+
+				corefilePath, err := infra.InstallAndRunCoreDNSWithDocker(tailIP)
+				if err != nil {
+					return fmt.Errorf("no se pudo instalar CoreDNS con Docker: %w", err)
+				}
+				fmt.Println("🧩 CoreDNS (Docker) listo. Corefile:", corefilePath)
+
+			case "public":
+				fmt.Printf("🌍 Modo PUBLIC: exponiendo públicamente con dominio %s\n", domain)
+				cloudflare.InstallCloudflare()
+				fmt.Println("🌐 Asegúrate de tener un dominio registrado en Cloudflare.")
+				cloudflare.LoginCloudflare()
+
 			}
 
-			fmt.Printf("🌐 Zona: %s | Host: %s\n", zone, host)
-
-			// 3) CoreDNS (Docker): asegurar contenedor y Corefile base
-			corefilePath, err := infra.InstallAndRunCoreDNSWithDocker(zone, "test-server", tailIP)
-			if err != nil {
-				fmt.Println("❌ No se pudo instalar CoreDNS con Docker:", err)
-				return
-			}
-
-			fmt.Println("🧩 CoreDNS (Docker) listo. Corefile:", corefilePath)
+			return nil
 		},
 	}
-	return cmd
-}
 
-func splitHostZone(fqdn string) (host, zone string) {
-	s := strings.TrimSpace(fqdn)
-	if s == "" {
-		return "", ""
-	}
-	parts := strings.Split(s, ".")
-	if len(parts) < 2 {
-		return "", ""
-	}
-	host = parts[0]
-	zone = strings.Join(parts[1:], ".")
-	return
+	// Flags
+	cmd.Flags().StringVarP(&mode, "mode", "m", "private", "Modo de exposición: private | public")
+	cmd.Flags().StringVar(&domain, "domain", "", "Dominio base para exposición pública (requerido en --mode=public)")
+	cmd.Flags().BoolVarP(&yes, "yes", "y", false, "No preguntar (auto-confirmar)")
+
+	// Autocompletado de valores para --mode
+	_ = cmd.RegisterFlagCompletionFunc("mode", func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
+		return []string{"private", "public"}, cobra.ShellCompDirectiveNoFileComp
+	})
+
+	return cmd
 }

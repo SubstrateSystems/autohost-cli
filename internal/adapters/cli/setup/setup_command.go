@@ -1,16 +1,9 @@
 package setup
 
 import (
-	"autohost-cli/internal/adapters/caddy"
-	cloudflarekit "autohost-cli/internal/adapters/cli/cloudflare/cloudflareKit"
-	initializerkit "autohost-cli/internal/adapters/cli/initializer/initializerKit"
 	"autohost-cli/internal/adapters/docker"
-	tailscale "autohost-cli/internal/adapters/tilscale"
 	"autohost-cli/utils"
-	"bufio"
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -23,8 +16,6 @@ func SetupCmd() *cobra.Command {
 		y prepara túneles seguros para desplegar tus apps autohospedadas.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("\n🔧 Iniciando configuración del servidor...")
-
-			initializerkit.EnsureAutohostDirs()
 
 			if !docker.DockerInstalled() {
 				if utils.Confirm("⚠️ Docker no está instalado. ¿Deseas instalarlo automáticamente? [y/N]: ") {
@@ -45,23 +36,23 @@ func SetupCmd() *cobra.Command {
 				docker.AddUserToDockerGroup()
 			}
 
-			if utils.Confirm("¿Deseas instalar y configurar Caddy como reverse proxy? [y/N]: ") {
-				caddy.InstallCaddy()
-				caddy.CreateCaddyfile()
-			}
+			// if utils.Confirm("¿Deseas instalar y configurar Caddy como reverse proxy? [y/N]: ") {
+			// 	caddy.InstallCaddy()
+			// 	caddy.CreateCaddyfile()
+			// }
 
-			option := utils.AskOption("🔒 ¿Qué tipo de acceso quieres configurar?", []string{"Tailscale (privado)", "Cloudflare Tunnel (público con dominio)"})
-			switch option {
-			case "Tailscale (privado)":
-				tailscale.InstallTailscale()
-			case "Cloudflare Tunnel (público con dominio)":
-				cloudflarekit.InstallCloudflared()
-				fmt.Print("Introduce el subdominio para el túnel (ej: blog.misitio.com): ")
-				reader := bufio.NewReader(os.Stdin)
-				domain, _ := reader.ReadString('\n')
-				domain = strings.TrimSpace(domain)
-				cloudflarekit.ConfigureCloudflareTunnel(domain)
-			}
+			// option := utils.AskOption("🔒 ¿Qué tipo de acceso quieres configurar?", []string{"Tailscale (privado)", "Cloudflare Tunnel (público con dominio)"})
+			// switch option {
+			// case "Tailscale (privado)":
+			// 	tailscale.InstallTailscale()
+			// case "Cloudflare Tunnel (público con dominio)":
+			// 	cloudflare.InstallCloudflare()
+			// 	cloudflare.LoginCloudflare()
+			// 	fmt.Println("🌐 Asegúrate de tener un dominio registrado en Cloudflare.")
+			// 	reader := bufio.NewReader(os.Stdin)
+			// 	domain, _ := reader.ReadString('\n')
+			// 	domain = strings.TrimSpace(domain)
+			// }
 
 			fmt.Println("\n✅ Configuración inicial completa.")
 		},
