@@ -1,11 +1,11 @@
 package setup
 
 import (
-	caddykit "autohost-cli/internal/adapters/cli/caddy/caddyKit"
+	"autohost-cli/internal/adapters/caddy"
 	cloudflarekit "autohost-cli/internal/adapters/cli/cloudflare/cloudflareKit"
 	initializerkit "autohost-cli/internal/adapters/cli/initializer/initializerKit"
-	tailscalekit "autohost-cli/internal/adapters/cli/tailscale/tailscaleKit"
 	"autohost-cli/internal/adapters/docker"
+	tailscale "autohost-cli/internal/adapters/tilscale"
 	"autohost-cli/utils"
 	"bufio"
 	"fmt"
@@ -46,14 +46,14 @@ func SetupCmd() *cobra.Command {
 			}
 
 			if utils.Confirm("¿Deseas instalar y configurar Caddy como reverse proxy? [y/N]: ") {
-				caddykit.InstallCaddy()
-				caddykit.CreateCaddyfile()
+				caddy.InstallCaddy()
+				caddy.CreateCaddyfile()
 			}
 
 			option := utils.AskOption("🔒 ¿Qué tipo de acceso quieres configurar?", []string{"Tailscale (privado)", "Cloudflare Tunnel (público con dominio)"})
 			switch option {
 			case "Tailscale (privado)":
-				tailscalekit.InstallTailscale()
+				tailscale.InstallTailscale()
 			case "Cloudflare Tunnel (público con dominio)":
 				cloudflarekit.InstallCloudflared()
 				fmt.Print("Introduce el subdominio para el túnel (ej: blog.misitio.com): ")

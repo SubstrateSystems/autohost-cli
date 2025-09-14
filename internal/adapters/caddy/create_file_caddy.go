@@ -1,4 +1,4 @@
-package caddykit
+package caddy
 
 import (
 	"fmt"

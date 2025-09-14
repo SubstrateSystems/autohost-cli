@@ -1,7 +1,7 @@
 package caddy
 
 import (
-	caddykit "autohost-cli/internal/adapters/cli/caddy/caddyKit"
+	"autohost-cli/internal/adapters/caddy"
 	"autohost-cli/utils"
 	"fmt"
 
@@ -18,8 +18,8 @@ func caddyInstallCmd() *cobra.Command {
 				return
 			}
 
-			caddykit.InstallCaddy()
-			caddykit.CreateCaddyfile()
+			caddy.InstallCaddy()
+			caddy.CreateCaddyfile()
 
 		},
 	}

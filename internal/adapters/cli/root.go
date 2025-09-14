@@ -7,6 +7,7 @@ import (
 	"autohost-cli/db"
 	"autohost-cli/internal/adapters/cli/app"
 	"autohost-cli/internal/adapters/cli/docker"
+	"autohost-cli/internal/adapters/cli/expose"
 	"autohost-cli/internal/adapters/cli/setup"
 	"autohost-cli/internal/adapters/storage/sqlite"
 	appInternal "autohost-cli/internal/app"
@@ -68,7 +69,7 @@ func init() {
 	rootCmd.AddCommand(app.AppCmd(deps))
 	rootCmd.AddCommand(setup.SetupCmd())
 	rootCmd.AddCommand(docker.DockerCmd())
-
+	rootCmd.AddCommand(expose.ExposeCmd())
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 

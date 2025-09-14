@@ -1,4 +1,4 @@
-package tailscalekit
+package tailscale
 
 import (
 	"autohost-cli/utils"
