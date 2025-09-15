@@ -11,6 +11,7 @@ func ExposeCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(exposeSetupCmd())
+	cmd.AddCommand(exposeCmd())
 
 	return cmd
 }

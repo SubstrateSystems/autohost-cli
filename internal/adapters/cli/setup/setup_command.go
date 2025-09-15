@@ -36,24 +36,6 @@ func SetupCmd() *cobra.Command {
 				docker.AddUserToDockerGroup()
 			}
 
-			// if utils.Confirm("¿Deseas instalar y configurar Caddy como reverse proxy? [y/N]: ") {
-			// 	caddy.InstallCaddy()
-			// 	caddy.CreateCaddyfile()
-			// }
-
-			// option := utils.AskOption("🔒 ¿Qué tipo de acceso quieres configurar?", []string{"Tailscale (privado)", "Cloudflare Tunnel (público con dominio)"})
-			// switch option {
-			// case "Tailscale (privado)":
-			// 	tailscale.InstallTailscale()
-			// case "Cloudflare Tunnel (público con dominio)":
-			// 	cloudflare.InstallCloudflare()
-			// 	cloudflare.LoginCloudflare()
-			// 	fmt.Println("🌐 Asegúrate de tener un dominio registrado en Cloudflare.")
-			// 	reader := bufio.NewReader(os.Stdin)
-			// 	domain, _ := reader.ReadString('\n')
-			// 	domain = strings.TrimSpace(domain)
-			// }
-
 			fmt.Println("\n✅ Configuración inicial completa.")
 		},
 	}

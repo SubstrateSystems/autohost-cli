@@ -5,7 +5,6 @@ import (
 	"autohost-cli/internal/adapters/cloudflare"
 	"autohost-cli/internal/adapters/infra"
 	tailscale "autohost-cli/internal/adapters/tilscale"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -32,10 +31,6 @@ func exposeSetupCmd() *cobra.Command {
 				return fmt.Errorf("modo inválido: %q (usa: private|public)", mode)
 			}
 
-			// Si es público, el dominio es necesario (o la info que quieras exigir)
-			if mode == "public" && strings.TrimSpace(domain) == "" {
-				return errors.New("para --mode=public debes indicar --domain (e.g. --domain ejemplo.com)")
-			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
