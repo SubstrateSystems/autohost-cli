@@ -42,6 +42,12 @@ func exposeCmd() *cobra.Command {
 				fmt.Println("🌐 Exposición vía Cloudflare seleccionada (no implementado aún).")
 			case "private":
 				fmt.Println("🛰️  Exposición vía Tailscale seleccionada (no implementado aún).")
+				// create splitDns in Tailscale
+
+				// update CoreFile and restart
+
+				// update Caddyfile and restart
+
 			}
 			fmt.Printf("Exponiendo %q en %q a través de %q\n", subdomain, nameApp, exposeType)
 			return nil

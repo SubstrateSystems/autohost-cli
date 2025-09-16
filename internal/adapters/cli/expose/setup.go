@@ -4,7 +4,7 @@ import (
 	"autohost-cli/internal/adapters/caddy"
 	"autohost-cli/internal/adapters/cloudflare"
 	"autohost-cli/internal/adapters/infra"
-	tailscale "autohost-cli/internal/adapters/tilscale"
+	"autohost-cli/internal/adapters/tailscale"
 	"fmt"
 	"strings"
 
@@ -39,6 +39,13 @@ func exposeSetupCmd() *cobra.Command {
 				fmt.Println("🔒 Modo PRIVATE: sólo tailnet (DNS interno, sin exposición pública).")
 				caddy.InstallCaddy()
 				caddy.CreateCaddyfile()
+
+				// Tailscale
+				tailscale.InstallTailscale()
+				// Login si no lo está
+				if err := tailscale.LoginTailscale(); err != nil {
+					return fmt.Errorf("no se pudo iniciar sesión en Tailscale: %w", err)
+				}
 
 				tailIP, err := tailscale.TailscaleIP()
 				if err != nil || tailIP == "" {
