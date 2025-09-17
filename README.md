@@ -89,6 +89,45 @@ En un mundo donde la mayoría de las aplicaciones están en la nube, **AutoHost 
 
 ---
 
+## 🧪 Desarrollo y Pruebas
+
+### Ejecutar pruebas
+
+Para correr todas las pruebas del proyecto:
+
+```bash
+go test ./...
+```
+
+Para ejecutar pruebas con información detallada:
+
+```bash
+go test -v ./...
+```
+
+Para ejecutar pruebas de un paquete específico:
+
+```bash
+go test -v ./utils
+go test -v ./internal/adapters/cli/app
+```
+
+### Estructura de pruebas
+
+- Las pruebas siguen la convención `*_test.go` junto a los archivos de código
+- Se incluyen pruebas unitarias para los comandos principales (`app` y sus subcomandos)
+- Las pruebas utilizan el paquete estándar `testing` de Go
+- Los mocks se utilizan para componentes externos (Docker, sistema de archivos)
+
+### Cobertura de pruebas
+
+Las pruebas actuales cubren:
+- ✅ Comandos del CLI (estructura y validación de argumentos)
+- ✅ Utilidades de helpers (`ValidPort`, `GetAutohostDir`, etc.)
+- ✅ Validación de configuraciones básicas
+
+---
+
 ## 🤝 Contribuir
 
 ¿Quieres aportar?  
