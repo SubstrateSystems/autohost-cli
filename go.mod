@@ -5,6 +5,7 @@ go 1.23.0
 require (
 	github.com/pelletier/go-toml v1.9.5
 	github.com/spf13/cobra v1.9.1
+	modernc.org/sqlite v1.38.2
 )
 
 require (
@@ -20,5 +21,4 @@ require (
 	modernc.org/libc v1.66.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.38.2 // indirect
 )
