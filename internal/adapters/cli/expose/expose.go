@@ -1,13 +1,15 @@
 package expose
 
 import (
+	"autohost-cli/internal/adapters/infra"
+	"autohost-cli/internal/adapters/tailscale"
 	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-func exposeCmd() *cobra.Command {
+func exposeAppCmd() *cobra.Command {
 	var (
 		exposeType string
 		subdomain  string
@@ -45,6 +47,17 @@ func exposeCmd() *cobra.Command {
 				// create splitDns in Tailscale
 
 				// update CoreFile and restart
+				tailscaleIP, err := tailscale.TailscaleIP()
+				if err != nil {
+					return fmt.Errorf("no se pudo obtener la IP de Tailscale: %w", err)
+				}
+				name, err := tailscale.GetMachineName()
+				if err != nil {
+					return fmt.Errorf("no se pudo obtener el nombre de la máquina en Tailscale: %w", err)
+				}
+				nameWithSubdomain := fmt.Sprintf("%s.%s", subdomain, name)
+				fmt.Printf("🔍 La IP de Tailscale es %q y el nombre de la máquina es %q (usando %q)\n", tailscaleIP, name, nameWithSubdomain)
+				infra.UpdateCorefile(nameWithSubdomain, tailscaleIP)
 
 				// update Caddyfile and restart
 
