@@ -80,7 +80,7 @@ func createTemplateCorefile(tailIP string) string {
 `, tailIP)
 }
 
-func updateCorefile(subdomain, appIP string) error {
+func UpdateCorefile(subdomain, appIP string) error {
 	home, _ := os.UserHomeDir()
 	corefilePath := filepath.Join(home, ".autohost", "coredns")
 	// Leer Corefile actual
