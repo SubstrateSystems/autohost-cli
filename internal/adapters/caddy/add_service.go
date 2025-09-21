@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func AddServiceToCaddyfile(serviceName, serviceHost string, servicePort int) {
+func AddService(serviceHost string, servicePort int) error {
 	homeDir := utils.GetAutohostDir()
 	caddyfilePath := filepath.Join(homeDir, ".autohost", "caddy", "Caddyfile")
 
@@ -21,25 +21,26 @@ func AddServiceToCaddyfile(serviceName, serviceHost string, servicePort int) {
 	contentBytes, err := os.ReadFile(caddyfilePath)
 	if err != nil {
 		fmt.Println("❌ No se pudo leer el archivo Caddyfile:", err)
-		return
+		return err
 	}
 	content := string(contentBytes)
 
 	if strings.Contains(content, serviceHost) {
 		fmt.Printf("⚠️ Ya existe una entrada para %s en el Caddyfile.\n", serviceHost)
-		return
+		return nil
 	}
 
 	file, err := os.OpenFile(caddyfilePath, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println("❌ No se pudo abrir el archivo Caddyfile:", err)
-		return
+		return err
 	}
 	defer file.Close()
 
 	_, err = file.WriteString(block)
 	if err != nil {
 		fmt.Println("❌ No se pudo escribir en el archivo Caddyfile:", err)
-		return
+		return err
 	}
+	return nil
 }

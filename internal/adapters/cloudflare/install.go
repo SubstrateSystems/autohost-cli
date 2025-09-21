@@ -7,7 +7,7 @@ import (
 	"os/exec"
 )
 
-func InstallCloudflare() {
+func InstallCloudflare() error {
 	fmt.Println("🌐 Instalando Cloudflare Tunnel (cloudflared)...")
 
 	downloadURL := config.MustString("url.toml", "cloudflared", "download_url")
@@ -23,8 +23,7 @@ func InstallCloudflare() {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		fmt.Println("❌ Error al instalar cloudflared:", err)
-	} else {
-		fmt.Println("✅ Cloudflare Tunnel instalado con éxito.")
+		return fmt.Errorf("error installing cloudflared: %w", err)
 	}
+	return nil
 }

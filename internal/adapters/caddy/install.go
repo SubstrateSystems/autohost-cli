@@ -6,7 +6,8 @@ import (
 	"fmt"
 )
 
-func InstallCaddy() {
+func InstallCaddy() error {
+
 	fmt.Println("🚀 Instalando Caddy...")
 
 	// Lee configuración desde TOML embebido
@@ -27,4 +28,5 @@ func InstallCaddy() {
 	utils.ExecShell(fmt.Sprintf("sudo systemctl start %s", serviceName))
 
 	fmt.Println("✅ Caddy instalado y activado correctamente.")
+	return nil
 }

@@ -6,12 +6,12 @@ import (
 	"os/exec"
 )
 
-func CreateCaddyfile() {
+func CreateCaddyfile() error {
 	caddyfilePath := "/etc/caddy/Caddyfile"
 
 	if _, err := os.Stat(caddyfilePath); err == nil {
 		fmt.Println("📄 Ya existe un Caddyfile, no se modificará.")
-		return
+		return nil
 	}
 
 	content := `
@@ -35,4 +35,5 @@ http://localhost {
 	} else {
 		fmt.Println("🔁 Caddy recargado con éxito.")
 	}
+	return nil
 }

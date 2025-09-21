@@ -1,4 +1,5 @@
 // internal/di/deps.go
+// dependency injection
 package di
 
 import (
