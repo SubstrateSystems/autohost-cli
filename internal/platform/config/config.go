@@ -24,7 +24,7 @@ var (
 // file puede ser "urls.toml" (con o sin "config/").
 func loadFile(file string) (map[string]any, error) {
 	base := filepath.Base(file) // "urls.toml"
-	path := filepath.Join("config", base)
+	path := filepath.Join(base)
 
 	mu.RLock()
 	if m, ok := files[path]; ok {

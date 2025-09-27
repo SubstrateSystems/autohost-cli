@@ -58,23 +58,27 @@ func Install(ctx context.Context) error {
 
 	tmpDir := os.TempDir()
 	extracted, err := infra.UnzipSingleBinary(zipPath, "terraform", tmpDir)
+	fmt.Printf("→ Terraform descargado y extraído a %s\n", extracted)
 	if err != nil {
 		return err
 	}
 
-	finalPath := filepath.Join(utils.GetAutohostDir(), "terraform")
-	if err := os.MkdirAll(finalPath, 0755); err != nil {
+	finalDir := filepath.Join(utils.GetAutohostDir(), "terraform")
+	if err := os.MkdirAll(finalDir, 0o755); err != nil {
 		return err
 	}
 
-	if err := moveFile(extracted, finalPath); err != nil {
-		return err
-	}
-	if err := os.Chmod(finalPath, 0o755); err != nil {
+	dest := filepath.Join(finalDir, "terraform") // ← ahora sí archivo
+
+	if err := moveFile(extracted, dest); err != nil {
 		return err
 	}
 
-	fmt.Printf("✔ Terraform instalado en %s\n", finalPath)
+	if err := os.Chmod(dest, 0o755); err != nil {
+		return err
+	}
+
+	fmt.Printf("✔ Terraform instalado en %s\n", dest)
 	ver, _ := version(ctx)
 	if ver != "" {
 		fmt.Printf("→ terraform -version => %s\n", ver)
@@ -124,6 +128,7 @@ func moveFile(src, dst string) error {
 		return nil
 	}
 	// copia manual
+	fmt.Println("ruta", src)
 	in, err := os.Open(src)
 	if err != nil {
 		return err

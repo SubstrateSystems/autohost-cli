@@ -1,8 +1,9 @@
 package expose
 
 import (
-	"autohost-cli/internal/adapters/infra"
+	coredns "autohost-cli/internal/adapters/coreDNS"
 	"autohost-cli/internal/adapters/tailscale"
+	"autohost-cli/internal/adapters/terraform"
 	"fmt"
 	"strings"
 
@@ -38,13 +39,23 @@ func exposeAppCmd() *cobra.Command {
 
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
 			switch exposeType {
 			case "public":
 
 				fmt.Println("🌐 Exposición vía Cloudflare seleccionada (no implementado aún).")
 			case "private":
-				fmt.Println("🛰️  Exposición vía Tailscale seleccionada (no implementado aún).")
 				// create splitDns in Tailscale
+				cfg := terraform.SplitDNSConfig{
+					MagicDNS:    true,             // opcional pero útil
+					SearchPaths: []string{"test"}, // opcional; permite resolver "maza-server" como "maza-server.test" o "maza-server.test2"
+					SplitNameservers: map[string][]string{
+						"test": {"100.112.92.90"},
+					},
+				}
+				if err := terraform.ApplySplitDNS(ctx, "default", cfg); err != nil {
+					fmt.Printf("⚠️  No se pudo aplicar Split DNS en Tailscale: %v\n", err)
+				}
 
 				// update CoreFile and restart
 				tailscaleIP, err := tailscale.TailscaleIP()
@@ -57,7 +68,7 @@ func exposeAppCmd() *cobra.Command {
 				}
 				nameWithSubdomain := fmt.Sprintf("%s.%s", subdomain, name)
 				fmt.Printf("🔍 La IP de Tailscale es %q y el nombre de la máquina es %q (usando %q)\n", tailscaleIP, name, nameWithSubdomain)
-				infra.UpdateCorefile(nameWithSubdomain, tailscaleIP)
+				coredns.UpdateCorefile(nameWithSubdomain, tailscaleIP)
 
 				// update Caddyfile and restart
 
@@ -66,6 +77,9 @@ func exposeAppCmd() *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringVar(&exposeType, "type", "", "Tipo de exposición: private o public")
+	cmd.Flags().StringVar(&subdomain, "subdomain", "", "Subdominio a exponer")
+	cmd.Flags().StringVar(&nameApp, "app", "", "Nombre de la aplicación")
 
 	return cmd
 }

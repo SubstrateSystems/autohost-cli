@@ -92,112 +92,11 @@ package infra
 // 	return nil
 // }
 
-// // func ensureTerraform() (string, error) {
-// // 	// Si está en PATH, úsalo
-// // 	if p, err := exec.LookPath("terraform"); err == nil {
-// // 		return p, nil
-// // 	}
-// // 	home, _ := os.UserHomeDir()
-// // 	binDir := filepath.Join(home, tfBinDirRel)
-// // 	if err := os.MkdirAll(binDir, 0o755); err != nil {
-// // 		return "", err
-// // 	}
-// // 	tfPath := filepath.Join(binDir, "terraform")
-// // 	if _, err := os.Stat(tfPath); err == nil {
-// // 		return tfPath, nil
-// // 	}
-
-// // 	// Descargar según OS/ARCH
-// // 	osName := runtime.GOOS
-// // 	arch := runtime.GOARCH
-// // 	var url string
-// // 	var isZip bool
-
-// // 	switch osName {
-// // 	case "linux":
-// // 		switch arch {
-// // 		case "amd64":
-// // 			url = fmt.Sprintf("%s/%s/terraform_%s_linux_amd64.zip", tfDownloadBase, tfVersion, tfVersion)
-// // 			isZip = true
-// // 		case "arm64":
-// // 			url = fmt.Sprintf("%s/%s/terraform_%s_linux_arm64.zip", tfDownloadBase, tfVersion, tfVersion)
-// // 			isZip = true
-// // 		default:
-// // 			return "", fmt.Errorf("arquitectura no soportada: %s/%s", osName, arch)
-// // 		}
-// // 	case "darwin":
-// // 		switch arch {
-// // 		case "arm64":
-// // 			url = fmt.Sprintf("%s/%s/terraform_%s_darwin_arm64.zip", tfDownloadBase, tfVersion, tfVersion)
-// // 			isZip = true
-// // 		case "amd64":
-// // 			url = fmt.Sprintf("%s/%s/terraform_%s_darwin_amd64.zip", tfDownloadBase, tfVersion, tfVersion)
-// // 			isZip = true
-// // 		default:
-// // 			return "", fmt.Errorf("arquitectura no soportada: %s/%s", osName, arch)
-// // 		}
-// // 	case "windows":
-// // 		switch arch {
-// // 		case "amd64":
-// // 			url = fmt.Sprintf("%s/%s/terraform_%s_windows_amd64.zip", tfDownloadBase, tfVersion, tfVersion)
-// // 			isZip = true
-// // 		case "arm64":
-// // 			url = fmt.Sprintf("%s/%s/terraform_%s_windows_arm64.zip", tfDownloadBase, tfVersion, tfVersion)
-// // 			isZip = true
-// // 		default:
-// // 			return "", fmt.Errorf("arquitectura no soportada: %s/%s", osName, arch)
-// // 		}
-// // 	default:
-// // 		return "", fmt.Errorf("SO no soportado: %s", osName)
-// // 	}
-
-// // 	fmt.Println("⬇️  Descargando Terraform:", url)
-// // 	body, err := httpGet(url, 60*time.Second)
-// // 	if err != nil {
-// // 		return "", err
-// // 	}
-
-// // 	if isZip {
-// // 		if err := unzipTerraform(body, binDir); err != nil {
-// // 			return "", err
-// // 		}
-// // 	} else {
-// // 		// (Nunca usamos .tgz aquí, pero dejamos el hook por si cambias arriba)
-// // 		r, err := gzip.NewReader(bytes.NewReader(body))
-// // 		if err != nil {
-// // 			return "", err
-// // 		}
-// // 		defer r.Close()
-// // 		out, err := os.Create(tfPath)
-// // 		if err != nil {
-// // 			return "", err
-// // 		}
-// // 		if _, err := io.Copy(out, r); err != nil {
-// // 			_ = out.Close()
-// // 			return "", err
-// // 		}
-// // 		_ = out.Close()
-// // 	}
-
-// // 	if runtime.GOOS != "windows" {
 // // 		_ = os.Chmod(filepath.Join(binDir, "terraform"), 0o755)
 // // 	}
 // // 	return filepath.Join(binDir, "terraform"), nil
 // // }
 
-// // func prepareWorkspace(tailnet, domain string) (string, error) {
-// // 	home, _ := os.UserHomeDir()
-// // 	safeDomain := strings.ReplaceAll(domain, ".", "-")
-// // 	stateDir := filepath.Join(home, tfStateDirRel, tailnet, "split-dns-"+safeDomain)
-
-// // 	if err := os.MkdirAll(stateDir, 0o755); err != nil {
-// // 		return "", err
-// // 	}
-// // 	// .gitignore para evitar subir el state
-// // 	_ = os.WriteFile(filepath.Join(stateDir, ".gitignore"),
-// // 		[]byte("*.tfstate\n*.tfstate.backup\n.terraform/\n.terraform.lock.hcl\n"), 0o644)
-// // 	return stateDir, nil
-// // }
 
 // // func writeMainTF(dir, domain string, nameservers, searchPaths []string) error {
 // // 	if len(nameservers) == 0 {

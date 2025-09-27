@@ -7,17 +7,17 @@ package tailscale
 // )
 
 // func TailscaleSplitDNS(subdomain, appIP string) error {
-// 	// domain, _ := cmd.Flags().GetString("domain")
-// 	// nsStr, _ := cmd.Flags().GetString("nameservers")
-// 	// searchStr, _ := cmd.Flags().GetString("search-paths")
-// 	// tailnet, _ := cmd.Flags().GetString("tailnet")
+// 	domain, _ := cmd.Flags().GetString("domain")
+// 	nsStr, _ := cmd.Flags().GetString("nameservers")
+// 	searchStr, _ := cmd.Flags().GetString("search-paths")
+// 	tailnet, _ := cmd.Flags().GetString("tailnet")
 
-// 	// if domain == "" || nsStr == "" {
-// 	// return fmt.Errorf("flags requeridas: --domain y --nameservers (separados por coma si son varios)")
-// 	// }
+// 	if domain == "" || nsStr == "" {
+// 		return fmt.Errorf("flags requeridas: --domain y --nameservers (separados por coma si son varios)")
+// 	}
 
-// 	// nameservers := splitAndTrim(nsStr)
-// 	// searchPaths := splitAndTrim(searchStr)
+// 	nameservers := splitAndTrim(nsStr)
+// 	searchPaths := splitAndTrim(searchStr)
 
 // 	fmt.Println("⚙️  Configurando Split DNS con Terraform...")
 // 	err := infra.ConfigureSplitDNSWithTerraform(infra.SplitDNSOpts{
