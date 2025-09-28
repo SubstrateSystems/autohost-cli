@@ -13,7 +13,7 @@ const (
 	coreDNSImage     = "coredns/coredns:latest"
 )
 
-func InstallAndRun(tailIP string) (string, error) {
+func InstallAndRunCoreDNS(tailIP string) (string, error) {
 
 	if _, err := exec.LookPath("docker"); err != nil {
 		return "", fmt.Errorf("docker no está instalado en PATH: %w", err)

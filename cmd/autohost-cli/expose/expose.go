@@ -1,9 +1,10 @@
 package expose
 
 import (
+	"autohost-cli/internal/adapters/caddy"
 	coredns "autohost-cli/internal/adapters/coreDNS"
 	"autohost-cli/internal/adapters/tailscale"
-	"autohost-cli/internal/adapters/terraform"
+	"autohost-cli/internal/app"
 	"fmt"
 	"strings"
 
@@ -16,6 +17,12 @@ func exposeAppCmd() *cobra.Command {
 		subdomain  string
 		nameApp    string
 	)
+
+	var svc = &app.ExposeService{
+		Caddy:     caddy.New(),
+		CoreDNS:   coredns.New(),
+		Tailscale: tailscale.New(),
+	}
 
 	cmd := &cobra.Command{
 		Use:   "expose",
@@ -45,33 +52,9 @@ func exposeAppCmd() *cobra.Command {
 
 				fmt.Println("🌐 Exposición vía Cloudflare seleccionada (no implementado aún).")
 			case "private":
-				// create splitDns in Tailscale
-				cfg := terraform.SplitDNSConfig{
-					MagicDNS:    true,             // opcional pero útil
-					SearchPaths: []string{"test"}, // opcional; permite resolver "maza-server" como "maza-server.test" o "maza-server.test2"
-					SplitNameservers: map[string][]string{
-						"test": {"100.112.92.90"},
-					},
+				if err := svc.ExposeApp(ctx, subdomain, nameApp); err != nil {
+					return fmt.Errorf("error exponiendo app: %w", err)
 				}
-				if err := terraform.ApplySplitDNS(ctx, "default", cfg); err != nil {
-					fmt.Printf("⚠️  No se pudo aplicar Split DNS en Tailscale: %v\n", err)
-				}
-
-				// update CoreFile and restart
-				tailscaleIP, err := tailscale.TailscaleIP()
-				if err != nil {
-					return fmt.Errorf("no se pudo obtener la IP de Tailscale: %w", err)
-				}
-				name, err := tailscale.GetMachineName()
-				if err != nil {
-					return fmt.Errorf("no se pudo obtener el nombre de la máquina en Tailscale: %w", err)
-				}
-				nameWithSubdomain := fmt.Sprintf("%s.%s", subdomain, name)
-				fmt.Printf("🔍 La IP de Tailscale es %q y el nombre de la máquina es %q (usando %q)\n", tailscaleIP, name, nameWithSubdomain)
-				coredns.UpdateCorefile(nameWithSubdomain, tailscaleIP)
-
-				// update Caddyfile and restart
-
 			}
 			fmt.Printf("Exponiendo %q en %q a través de %q\n", subdomain, nameApp, exposeType)
 			return nil

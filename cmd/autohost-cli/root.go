@@ -4,10 +4,10 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cli
 
 import (
+	"autohost-cli/cmd/autohost-cli/app"
+	"autohost-cli/cmd/autohost-cli/expose"
+	"autohost-cli/cmd/autohost-cli/setup"
 	"autohost-cli/db"
-	"autohost-cli/internal/adapters/cli/app"
-	"autohost-cli/internal/adapters/cli/expose"
-	"autohost-cli/internal/adapters/cli/setup"
 	"autohost-cli/internal/adapters/storage/sqlite"
 	appInternal "autohost-cli/internal/app"
 	"autohost-cli/internal/platform/di"

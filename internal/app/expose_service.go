@@ -2,6 +2,7 @@ package app
 
 import (
 	"autohost-cli/internal/ports"
+	"context"
 	"fmt"
 )
 
@@ -57,6 +58,39 @@ func (s *ExposeService) SetupPublic(domain string) error {
 	}
 	if err := s.Cloudflare.Login(); err != nil {
 		return fmt.Errorf("cloudflare login: %w", err)
+	}
+	return nil
+}
+
+func (s *ExposeService) ExposeApp(ctx context.Context, subdomain string, nameApp string) error {
+	tailscaleIP, err := s.Tailscale.IP()
+	if err != nil {
+		return fmt.Errorf("no se pudo obtener la IP de Tailscale: %w", err)
+	}
+	// create splitDns in Tailscale
+	// cfg := terraform.SplitDNSConfig{
+	// 	MagicDNS:    true,                // opcional pero útil
+	// 	SearchPaths: []string{subdomain}, // opcional; permite resolver "maza-server" como "maza-server.test" o "maza-server.test2"
+	// 	SplitNameservers: map[string][]string{
+	// 		subdomain: {tailscaleIP},
+	// 	},
+	// }
+	// if err := terraform.ApplySplitDNS(ctx, nameApp, cfg); err != nil {
+	// 	fmt.Printf("⚠️  No se pudo aplicar Split DNS en Tailscale: %v\n", err)
+	// }
+
+	// update CoreFile and restart
+	name, err := s.Tailscale.GetMachineName()
+	if err != nil {
+		return fmt.Errorf("no se pudo obtener el nombre de la máquina en Tailscale: %w", err)
+	}
+	nameWithSubdomain := fmt.Sprintf("%s.%s", subdomain, name)
+	fmt.Printf("🔍 La IP de Tailscale es %q y el nombre de la máquina es %q (usando %q)\n", tailscaleIP, name, nameWithSubdomain)
+	s.CoreDNS.UpdateCorefile(nameWithSubdomain, tailscaleIP)
+
+	// update Caddyfile and restart
+	if err := s.Caddy.AddService("192.168.1.100", 8080); err != nil {
+		return fmt.Errorf("no se pudo actualizar Caddyfile: %w", err)
 	}
 	return nil
 }

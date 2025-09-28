@@ -8,6 +8,7 @@ import (
 
 	acaddy "autohost-cli/internal/adapters/caddy"
 	acloud "autohost-cli/internal/adapters/cloudflare"
+	acoredns "autohost-cli/internal/adapters/coreDNS"
 	ats "autohost-cli/internal/adapters/tailscale"
 
 	"github.com/spf13/cobra"
@@ -21,6 +22,7 @@ func exposeSetupCmd() *cobra.Command {
 	var svc = &app.ExposeService{
 		Caddy:      acaddy.New(),
 		Tailscale:  ats.New(),
+		CoreDNS:    acoredns.New(),
 		Cloudflare: acloud.New(),
 	}
 

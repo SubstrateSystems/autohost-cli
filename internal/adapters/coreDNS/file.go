@@ -3,6 +3,7 @@ package coredns
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -22,7 +23,7 @@ func createTemplateCorefile(tailIP string) string {
 `, tailIP)
 }
 
-func UpdateCorefile(subdomain, appIP string) error {
+func UpdateCorefile(subdomain string, appIP string) error {
 	home, _ := os.UserHomeDir()
 	corefilePath := filepath.Join(home, ".autohost", "coredns")
 	// Leer Corefile actual
@@ -53,7 +54,13 @@ func UpdateCorefile(subdomain, appIP string) error {
 	if err := os.WriteFile(corefilePath, []byte(updated), 0644); err != nil {
 		return fmt.Errorf("no pude escribir Corefile actualizado: %w", err)
 	}
-
+	// se debe cambiar pronto
+	cmd := exec.Command("docker", "restart", coreDNSContainer)
+	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("no se pudo reiniciar el contenedor CoreDNS: %w", err)
+	}
+	// se debe cambiar pronto
 	fmt.Println("✅ Corefile actualizado con:", newLine)
 	return nil
 }

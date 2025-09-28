@@ -4,43 +4,45 @@ import (
 	"autohost-cli/utils"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
-	"strings"
 )
 
 func AddService(serviceHost string, servicePort int) error {
-	homeDir := utils.GetAutohostDir()
-	caddyfilePath := filepath.Join(homeDir, ".autohost", "caddy", "Caddyfile")
-
-	block := fmt.Sprintf(`
-	%s {
-		reverse_proxy 127.0.0.1:%d
+	// 1) Ruta del snippet
+	dir := filepath.Join("/", "etc", "caddy", "autohost")
+	if err := os.MkdirAll(dir, 0o775); err != nil {
+		return fmt.Errorf("crear dir snippets: %w", err)
 	}
-	`, serviceHost, servicePort)
+	snippet := filepath.Join(dir, fmt.Sprintf("%s.caddy", serviceHost))
 
-	contentBytes, err := os.ReadFile(caddyfilePath)
-	if err != nil {
-		fmt.Println("❌ No se pudo leer el archivo Caddyfile:", err)
-		return err
-	}
-	content := string(contentBytes)
+	// 2) Bloque Caddy por host
+	block := fmt.Sprintf(`%s {
+    reverse_proxy 127.0.0.1:%d
+}
+`, serviceHost, servicePort)
 
-	if strings.Contains(content, serviceHost) {
-		fmt.Printf("⚠️ Ya existe una entrada para %s en el Caddyfile.\n", serviceHost)
-		return nil
+	// 3) Si ya existe, no duplicar
+	if _, err := os.Stat(snippet); err == nil {
+		fmt.Printf("⚠️ Ya existe una entrada para %s (%s).\n", serviceHost, snippet)
+	} else {
+		if err := os.WriteFile(snippet, []byte(block), 0o664); err != nil {
+			return fmt.Errorf("escribir snippet: %w", err)
+		}
+		fmt.Printf("✅ Snippet creado: %s\n", snippet)
 	}
 
-	file, err := os.OpenFile(caddyfilePath, os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Println("❌ No se pudo abrir el archivo Caddyfile:", err)
-		return err
+	// 4) Recargar Caddy (sin password gracias a sudoers)
+	if err := exec.Command("sudo", "systemctl", "reload", "caddy").Run(); err != nil {
+		return fmt.Errorf("recargar caddy: %w", err)
 	}
-	defer file.Close()
+	fmt.Println("🔄 Caddy recargado.")
 
-	_, err = file.WriteString(block)
-	if err != nil {
-		fmt.Println("❌ No se pudo escribir en el archivo Caddyfile:", err)
-		return err
-	}
 	return nil
+}
+
+func restartCaddy() error {
+	fmt.Println("🔄 Reiniciando Caddy...")
+	err := utils.Exec("sudo", "systemctl", "restart", "caddy")
+	return err
 }

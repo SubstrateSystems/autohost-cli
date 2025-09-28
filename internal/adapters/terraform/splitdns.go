@@ -77,7 +77,6 @@ func ApplySplitDNS(ctx context.Context, workProfile string, cfg SplitDNSConfig) 
 	return nil
 }
 
-// Plantilla del main.tf (un solo archivo)
 // Plantilla del main.tf (corrigida)
 const mainTFContent = `terraform {
   required_providers {

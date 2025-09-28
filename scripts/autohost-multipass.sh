@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 BIN_DIR="${REPO_ROOT}/dist"
 LOCAL_BIN="${BIN_DIR}/autohost"
-MAIN_PKG="${REPO_ROOT}/cmd/autohost-cli"
+MAIN_PKG="${REPO_ROOT}/"
 
 log()  { echo -e "\033[1;34m[autohost]\033[0m $*"; }
 warn() { echo -e "\033[1;33m[warn]\033[0m $*"; }
