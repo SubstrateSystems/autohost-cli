@@ -79,6 +79,17 @@ autohost app status nextcloud
 *(La lista crece con cada versión. ¡Tu feedback ayuda a priorizar nuevas apps!)*
 
 ---
+## Env Test
+### Es Necesario tener instalado multipass: https://canonical.com/multipass
+
+|Command                              | Descripcion                                                          |
+|-------------------------------------|----------------------------------------------------------------------|
+|scripts/autohost-multipass.sh run    |Crea la VM (autohost-test) con el binario autohost en la carpeta bin  |
+|scripts/autohost-multipass.sh update |Actauliza el binaio autohost de la VM(autohost-test) en la carpeta bin|   
+|scripts/autohost-multipass.sh delete |Elimina la VM (autohost-test)                                         |
+
+---
+
 
 ## 🔒 Filosofía
 
