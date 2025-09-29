@@ -5,14 +5,6 @@ import (
 	"path/filepath"
 )
 
-const (
-	ConfigDir    = "/etc/autohost"
-	TemplatesDir = "/opt/autohost/templates"
-	DockerDir    = "/opt/autohost/docker"
-	LogsDir      = "/var/lib/autohost/logs"
-	StateDir     = "/var/lib/autohost/state"
-)
-
 func GetAutohostDir() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -27,6 +19,6 @@ func GetSubdir(subdir string) string {
 }
 
 func IsInitialized() bool {
-	// _, err := os.Stat(GetAutohostDir())
-	return true
+	_, err := os.Stat(GetAutohostDir())
+	return err == nil
 }

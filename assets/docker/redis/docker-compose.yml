@@ -1,0 +1,16 @@
+services:
+  $service-name:
+    image: redis:latest
+    ports:
+      - "$port:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - autohost_net
+
+volumes:
+  redis_data:
+
+networks:
+  autohost_net:
+    external: true

@@ -1,0 +1,35 @@
+# .goreleaser.yaml (en la raíz)
+project_name: autohost
+
+release:
+  draft: false
+  prerelease: auto
+
+builds:
+  - id: autohost
+    main: ./cmd/autohost-cli
+    binary: autohost
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]       # sin Windows
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.ShortCommit}}
+      - -X main.date={{.Date}}
+    flags: [ -trimpath ]
+
+archives:
+  - id: binario_plano
+    builds: [autohost]
+    format: binary
+    name_template: "{{ .Binary }}-{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  name_template: "checksums_{{ .Version }}.txt"
+
+changelog:
+  sort: asc
+  filters:
+    exclude: ['^docs?:', '^chore:', '^test:', '^ci:']

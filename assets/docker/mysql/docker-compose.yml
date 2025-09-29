@@ -1,0 +1,25 @@
+services:
+  $service-name:
+    image: mysql:8.0
+    container_name: $service-name
+    restart: always
+    ports:
+      - "$port:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: $mysql-root-password
+      MYSQL_DATABASE: $mysql-database
+      MYSQL_USER: $mysql-user
+      MYSQL_PASSWORD: $mysql-password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    networks:
+      - autohost_net
+    command: --default-authentication-plugin=mysql_native_password
+
+volumes:
+  mysql_data:
+
+networks:
+  autohost_net:
+    external: true

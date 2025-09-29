@@ -1,3 +1,11 @@
+```txt
+    
+    / \  _   _| |_ ___| |__   ___  ___| |_   / __| |   |_ _|
+   / _ \| | | | __/ _ \ '_ \ / _ \/ __| __| | |  | |    | | 
+  / ___ \ |_| | ||  _ \ | | | (_) \__ \ |_  | |__| |___ | | 
+ /_/   \_\__,_|\__\___|_| |_|\___/|___/\__|  \___|_____|___|                        
+```
+
 # 🚀 AutoHost CLI
 
 **Recupera el control de tus servicios.**  
@@ -8,44 +16,80 @@
 ## 🌟 Características
 
 - **Instalación en un comando**: Despliega aplicaciones listas para usar con `app install`.
-- **Configuración automática**: Ajusta dominios, certificados SSL y redes internas sin configuraciones manuales.
-- **Soporte para múltiples apps**: Nextcloud, BookStack, y más (¡en constante crecimiento!).
+- **Soporte para múltiples apps**: Nextcloud, BookStack, Redis, MySQL y más (¡en constante crecimiento!).
 - **Integración con Tailscale**: Conéctate de forma segura a tu infraestructura privada.
 - **Compatibilidad con Docker**: Aislamiento y portabilidad de tus aplicaciones.
 - **Enfoque en privacidad y control**: Todo se ejecuta en **tu** infraestructura.
 
 ---
 
+## ⚙️ Requisitos Previos
+
+Antes de instalar, asegúrate de contar con:
+- Un sistema basado en **Linux** (compatible con distribuciones modernas como Ubuntu/Debian).  
+- **Docker** instalado y corriendo.  
+- Permisos de administrador (**sudo/root**).  
+- Opcional: cuenta de **Tailscale** si quieres habilitar acceso seguro privado.  
+
+---
+
 ## 📦 Instalación
 
+Instala AutoHost CLI directamente desde GitHub con un solo comando:
+
 ```bash
-curl -fsSL https://autohost.dev/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mazapanuwu13/autohost-cli/main/scripts/install.sh | bash
 ```
+
+Este script detecta automáticamente tu sistema operativo y arquitectura, descarga la versión más reciente del binario desde GitHub Releases e instala AutoHost CLI en tu sistema.
 
 ---
 
 ## 🛠 Uso Básico
 
-### Inicializar AutoHost
+### Flujo de ejemplo
+
 ```bash
+# Inicializar entorno
 autohost init
-```
-### Configuracion inicial
-```bash
+
+# Configuración inicial (dominio, redes, etc.)
 autohost setup
-```
 
-### Instalar una aplicación
-```bash
-autohost app install bookstack
-```
+# Instalar una aplicación (ejemplo: Nextcloud)
+autohost app install
 
-### Levantar una app
-```bash
-autohost app start bookstack
+# Levantar la aplicación
+autohost app start nextcloud
+
+# Ver estado de la app
+autohost app status nextcloud
 ```
 
 ---
+
+## 📂 Aplicaciones soportadas
+
+| App        | Puerto por defecto | Estado  |
+|------------|-------------------|---------|
+| Nextcloud  | 8081              | ✅ Estable |
+| BookStack  | 6875              | ✅ Estable |
+| MySQL      | 3306              | ✅ Estable |
+
+*(La lista crece con cada versión. ¡Tu feedback ayuda a priorizar nuevas apps!)*
+
+---
+## Env Test
+### Es Necesario tener instalado multipass: https://canonical.com/multipass
+
+|Command                              | Descripcion                                                          |
+|-------------------------------------|----------------------------------------------------------------------|
+|scripts/autohost-multipass.sh run    |Crea la VM (autohost-test) con el binario autohost en la carpeta bin  |
+|scripts/autohost-multipass.sh update |Actauliza el binaio autohost de la VM(autohost-test) en la carpeta bin|   
+|scripts/autohost-multipass.sh delete |Elimina la VM (autohost-test)                                         |
+
+---
+
 
 ## 🔒 Filosofía
 
@@ -53,7 +97,6 @@ En un mundo donde la mayoría de las aplicaciones están en la nube, **AutoHost 
 - Controlas **tus datos**.  
 - Eliminas la dependencia de múltiples SaaS.  
 - Construyes tu propia infraestructura, escalable y privada.  
-
 
 ---
 
@@ -63,6 +106,7 @@ En un mundo donde la mayoría de las aplicaciones están en la nube, **AutoHost 
 1. Haz un fork del repositorio.  
 2. Crea una rama para tu feature/fix.  
 3. Envía un Pull Request.  
+4. Revisa las issues con la etiqueta **good first issue** para comenzar.
 
 ---
 
@@ -72,4 +116,4 @@ Este proyecto está bajo la licencia **MIT**.
 
 ---
 
-> 💡 **Consejo:** Si quieres recibir actualizaciones y novedades, visita [authost.dev](https://autohst.dev) o síguenos en redes.
+> 💡 **Consejo:** Si quieres recibir actualizaciones y novedades, visita [autohst.dev](https://autohst.dev) o síguenos en redes.
