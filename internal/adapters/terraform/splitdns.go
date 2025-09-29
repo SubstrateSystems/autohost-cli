@@ -1,6 +1,7 @@
 package terraform
 
 import (
+	"autohost-cli/internal/ports"
 	"autohost-cli/utils"
 	"context"
 	"encoding/json"
@@ -11,18 +12,12 @@ import (
 	"runtime"
 )
 
-type SplitDNSConfig struct {
-	MagicDNS         bool
-	SearchPaths      []string
-	SplitNameservers map[string][]string
-}
-
 // Aplica Split DNS usando un único main.tf autogenerado
-func ApplySplitDNS(ctx context.Context, workProfile string, cfg SplitDNSConfig) error {
+func ApplySplitDNS(ctx context.Context, workProfile string, cfg ports.SplitDNSConfig) error {
 	// 1) Asegurar Terraform instalado (ya tienes Install)
-	if err := Install(ctx); err != nil {
-		return fmt.Errorf("install terraform: %w", err)
-	}
+	// if err := Install(ctx); err != nil {
+	// 	return fmt.Errorf("install terraform: %w", err)
+	// }
 
 	// 2) Workdir estable (por tailnet/perfil)
 	baseDir := filepath.Join(os.Getenv("HOME"), ".autohost", "terraform", "splitdns", workProfile)

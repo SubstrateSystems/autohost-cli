@@ -39,14 +39,16 @@ func exposeSetupCmd() *cobra.Command {
 			if mode == "public" && strings.TrimSpace(domain) == "" {
 				return fmt.Errorf("--domain es requerido en --mode=public")
 			}
-			_ = yes // si quieres suprimir prompts luego
+			_ = yes
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := cmd.Context()
+
 			switch mode {
 			case "private":
 				fmt.Println("🔒 Modo PRIVATE: tailnet + DNS interno")
-				return svc.SetupPrivate(domain)
+				return svc.SetupPrivate(ctx, domain)
 			case "public":
 				fmt.Printf("🌍 Modo PUBLIC con dominio: %s\n", domain)
 				return svc.SetupPublic(domain)

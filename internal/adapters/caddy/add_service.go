@@ -4,7 +4,6 @@ import (
 	"autohost-cli/utils"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 )
 
@@ -31,11 +30,7 @@ func AddService(serviceHost string, servicePort int) error {
 		}
 		fmt.Printf("✅ Snippet creado: %s\n", snippet)
 	}
-
-	// 4) Recargar Caddy (sin password gracias a sudoers)
-	if err := exec.Command("sudo", "systemctl", "reload", "caddy").Run(); err != nil {
-		return fmt.Errorf("recargar caddy: %w", err)
-	}
+	restartCaddy()
 	fmt.Println("🔄 Caddy recargado.")
 
 	return nil

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"autohost-cli/internal/adapters/terraform"
 	"autohost-cli/internal/ports"
 	"context"
 	"fmt"
@@ -12,14 +13,24 @@ type ExposeService struct {
 	CoreDNS    ports.CoreDNS
 	SplitDNS   ports.SplitDNS
 	Cloudflare ports.Cloudflare
+	Terraform  ports.Terraform
 }
 
-func (s *ExposeService) SetupPrivate(domain string) error {
+func (s *ExposeService) SetupPrivate(ctx context.Context, domain string) error {
 	if err := s.Caddy.Install(); err != nil {
 		return fmt.Errorf("caddy install: %w", err)
 	}
+
+	if err := s.Terraform.Install(ctx); err != nil {
+		return fmt.Errorf("install terraform: %w", err)
+	}
+
 	if err := s.Caddy.CreateCaddyfile(); err != nil {
 		return fmt.Errorf("caddyfile: %w", err)
+	}
+	// setup caddy snippets dir and sudoers
+	if err := s.Caddy.EnsureCaddySnippetsSetup(ctx); err != nil {
+		return fmt.Errorf("caddy setup snippets: %w", err)
 	}
 
 	if err := s.Tailscale.Install(); err != nil {
@@ -62,22 +73,22 @@ func (s *ExposeService) SetupPublic(domain string) error {
 	return nil
 }
 
-func (s *ExposeService) ExposeApp(ctx context.Context, subdomain string, nameApp string) error {
+func (s *ExposeService) ExposeApp(ctx context.Context, subdomain string, nameApp string, port int) error {
 	tailscaleIP, err := s.Tailscale.IP()
 	if err != nil {
 		return fmt.Errorf("no se pudo obtener la IP de Tailscale: %w", err)
 	}
 	// create splitDns in Tailscale
-	// cfg := terraform.SplitDNSConfig{
-	// 	MagicDNS:    true,                // opcional pero útil
-	// 	SearchPaths: []string{subdomain}, // opcional; permite resolver "maza-server" como "maza-server.test" o "maza-server.test2"
-	// 	SplitNameservers: map[string][]string{
-	// 		subdomain: {tailscaleIP},
-	// 	},
-	// }
-	// if err := terraform.ApplySplitDNS(ctx, nameApp, cfg); err != nil {
-	// 	fmt.Printf("⚠️  No se pudo aplicar Split DNS en Tailscale: %v\n", err)
-	// }
+	cfg := ports.SplitDNSConfig{
+		MagicDNS:    true,                // opcional pero útil
+		SearchPaths: []string{subdomain}, // opcional; permite resolver "maza-server" como "maza-server.test" o "maza-server.test2"
+		SplitNameservers: map[string][]string{
+			subdomain: {tailscaleIP},
+		},
+	}
+	if err := terraform.ApplySplitDNS(ctx, nameApp, cfg); err != nil {
+		fmt.Printf("⚠️  No se pudo aplicar Split DNS en Tailscale: %v\n", err)
+	}
 
 	// update CoreFile and restart
 	name, err := s.Tailscale.GetMachineName()
@@ -89,7 +100,9 @@ func (s *ExposeService) ExposeApp(ctx context.Context, subdomain string, nameApp
 	s.CoreDNS.UpdateCorefile(nameWithSubdomain, tailscaleIP)
 
 	// update Caddyfile and restart
-	if err := s.Caddy.AddService("192.168.1.100", 8080); err != nil {
+	machineName, _ := s.Tailscale.GetMachineName()
+
+	if err := s.Caddy.AddService(machineName, 8080); err != nil {
 		return fmt.Errorf("no se pudo actualizar Caddyfile: %w", err)
 	}
 	return nil

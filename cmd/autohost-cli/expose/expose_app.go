@@ -16,6 +16,7 @@ func exposeAppCmd() *cobra.Command {
 		exposeType string
 		subdomain  string
 		nameApp    string
+		port       int
 	)
 
 	var svc = &app.ExposeService{
@@ -25,13 +26,13 @@ func exposeAppCmd() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "expose",
+		Use:   "app",
 		Short: "Configura la exposición de servicios",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			exposeType = strings.ToLower(strings.TrimSpace(exposeType))
 			switch exposeType {
 			case "private", "public":
-				// ok
+
 			default:
 				return fmt.Errorf("tipo inválido: %q (usa: private|public)", exposeType)
 			}
@@ -52,7 +53,7 @@ func exposeAppCmd() *cobra.Command {
 
 				fmt.Println("🌐 Exposición vía Cloudflare seleccionada (no implementado aún).")
 			case "private":
-				if err := svc.ExposeApp(ctx, subdomain, nameApp); err != nil {
+				if err := svc.ExposeApp(ctx, subdomain, nameApp, port); err != nil {
 					return fmt.Errorf("error exponiendo app: %w", err)
 				}
 			}
@@ -63,6 +64,7 @@ func exposeAppCmd() *cobra.Command {
 	cmd.Flags().StringVar(&exposeType, "type", "", "Tipo de exposición: private o public")
 	cmd.Flags().StringVar(&subdomain, "subdomain", "", "Subdominio a exponer")
 	cmd.Flags().StringVar(&nameApp, "app", "", "Nombre de la aplicación")
+	cmd.Flags().IntVar(&port, "port", 8080, "Puerto de la aplicación")
 
 	return cmd
 }
