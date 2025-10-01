@@ -1,7 +1,6 @@
 package app
 
 import (
-	appKit "autohost-cli/cmd/autohost-cli/app/appkit"
 	"autohost-cli/internal/platform/di"
 	"autohost-cli/utils"
 	"context"

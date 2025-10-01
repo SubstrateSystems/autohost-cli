@@ -1,10 +1,9 @@
-// internal/di/deps.go
-// dependency injection
 package di
 
 import (
 	"autohost-cli/internal/adapters/storage/sqlite"
-	"autohost-cli/internal/app"
+	"autohost-cli/internal/domain"
+	"context"
 	"database/sql"
 )
 
@@ -20,6 +19,28 @@ type Repos struct {
 }
 
 type Services struct {
-	App     app.AppService
-	Catalog app.CatalogService
+	App     AppService
+	Catalog CatalogService
+}
+
+type AppService struct {
+	Installed *sqlite.InstalledRepo
+}
+
+func (s AppService) ListInstalled(ctx context.Context) ([]domain.InstalledApp, error) {
+	return s.Installed.List(ctx)
+}
+
+func (s AppService) RemoveApp(ctx context.Context, name string) error {
+	return s.Installed.Remove(ctx, name)
+}
+
+func (s AppService) IsAppInstalled(ctx context.Context, name string) (bool, error) {
+	return s.Installed.IsInstalledApp(ctx, name)
+}
+
+type CatalogService struct{ Catalog sqlite.CatalogRepo }
+
+func (s CatalogService) List(ctx context.Context) (any, error) {
+	return s.Catalog.ListApps(ctx)
 }

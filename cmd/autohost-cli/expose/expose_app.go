@@ -4,6 +4,7 @@ import (
 	"autohost-cli/internal/adapters/caddy"
 	coredns "autohost-cli/internal/adapters/coreDNS"
 	"autohost-cli/internal/adapters/tailscale"
+	"autohost-cli/internal/adapters/terraform"
 	"autohost-cli/internal/app"
 	"fmt"
 	"strings"
@@ -21,8 +22,9 @@ func exposeAppCmd() *cobra.Command {
 
 	var svc = &app.ExposeService{
 		Caddy:     caddy.New(),
-		CoreDNS:   coredns.New(),
 		Tailscale: tailscale.New(),
+		CoreDNS:   coredns.New(),
+		Terraform: terraform.New(),
 	}
 
 	cmd := &cobra.Command{

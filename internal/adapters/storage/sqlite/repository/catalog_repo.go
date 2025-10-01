@@ -1,6 +1,7 @@
-package sqlite
+package repository
 
 import (
+	// "autohost-cli/internal/domain"
 	"autohost-cli/internal/domain"
 	"context"
 	"database/sql"

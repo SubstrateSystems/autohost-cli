@@ -14,14 +14,14 @@ type osRelease struct {
 	IDLike string
 }
 
-func InstallDocker() {
+func Install() error {
 	if runningInContainer() {
 		fmt.Println("⚠️  Detecté contenedor. No instalo Docker aquí. Usa el socket del host o dind para pruebas.")
-		return
+		return nil
 	}
 	if dockerAvailable() {
 		fmt.Println("✅ Docker ya está instalado.")
-		return
+		return nil
 	}
 	fmt.Println("🔄 Instalando Docker...")
 
@@ -58,6 +58,7 @@ rm -f "$tmp"
 	} else {
 		fmt.Println("✅ Docker instalado y en ejecución.")
 	}
+	return nil
 }
 
 func ensureCurl() error {
