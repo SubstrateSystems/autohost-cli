@@ -2,41 +2,34 @@ package setup
 
 import (
 	"autohost-cli/internal/adapters/docker"
-	"autohost-cli/utils"
+	"autohost-cli/internal/app"
 	"fmt"
 
 	"github.com/spf13/cobra"
 )
 
 func SetupCmd() *cobra.Command {
-	return &cobra.Command{
+
+	svc := &app.SetupService{
+		Docker: docker.New(),
+	}
+
+	cmd := &cobra.Command{
 		Use:   "setup",
 		Short: "Configura tu servidor para autohospedar servicios",
 		Long: `Este comando instala Docker, Caddy, configura dominios,
 		y prepara túneles seguros para desplegar tus apps autohospedadas.`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			fmt.Println("\n🔧 Iniciando configuración del servidor...")
 
-			if !docker.DockerInstalled() {
-				if utils.Confirm("⚠️ Docker no está instalado. ¿Deseas instalarlo automáticamente? [y/N]: ") {
-					docker.InstallDocker()
-					docker.CreateDockerNetwork()
-					fmt.Println("✅ Docker instalado correctamente.")
-					fmt.Println("✅ Red Docker 'autohost_net' creada.")
-					fmt.Println("🔄 Reiniciando sesión para aplicar cambios de grupo...")
-				} else {
-					fmt.Println("🚫 Instalación cancelada. Instala Docker manualmente y vuelve a ejecutar el setup.")
-					return
-				}
-			} else {
-				fmt.Println("✅ Docker ya está instalado.")
-			}
-
-			if utils.Confirm("¿Deseas agregar tu usuario al grupo 'docker' para usar Docker sin sudo? [y/N]: ") {
-				docker.AddUserToDockerGroup()
+			if err := svc.Setup(); err != nil {
+				return err
 			}
 
 			fmt.Println("\n✅ Configuración inicial completa.")
+			return nil
 		},
 	}
+
+	return cmd
 }

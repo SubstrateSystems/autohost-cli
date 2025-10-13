@@ -60,6 +60,37 @@ func (s *AppService) InstallApp(ctx context.Context, deps di.Deps) error {
 	return nil
 }
 
+func (s *AppService) StartApp(name string) error {
+	if err := s.Docker.StartApp(name); err != nil {
+		return fmt.Errorf("error al iniciar %s: %w", name, err)
+	}
+	return nil
+}
+
+func (s *AppService) StopApp(name string) error {
+	if err := s.Docker.StopApp(name); err != nil {
+		return fmt.Errorf("error al detener %s: %w", name, err)
+	}
+	return nil
+}
+
+func (s *AppService) RemoveApp(name string) error {
+	if err := s.Docker.RemoveApp(name); err != nil {
+		return fmt.Errorf("error al eliminar %s: %w", name, err)
+	}
+	return nil
+}
+
+func (s *AppService) GetAppStatus(name string) (string, error) {
+	status, err := s.Docker.GetAppStatus(name)
+	if err != nil {
+		return "", fmt.Errorf("error obteniendo estado de %s: %w", name, err)
+	}
+	return status, nil
+}
+
+// ------------------------- utils -------------------------
+
 func install(app domain.AppConfig) error {
 	fmt.Printf("%+v\n", app)
 	appDir := filepath.Join(utils.GetSubdir("apps"), app.Name)

@@ -57,7 +57,7 @@ type AppConfig struct {
 	Name     string
 	Template string
 	Port     string
-	MySQL    *MySQLConfig // nil si no aplica
+	MySQL    *MySQLConfig
 	Postgres *PostgresConfig
 }
 

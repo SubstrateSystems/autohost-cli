@@ -11,3 +11,6 @@ func (a *Adapter) RemoveApp(app string) error { return RemoveApp(app) }
 func (a *Adapter) GetAppStatus(app string) (string, error) {
 	return GetAppStatus(app)
 }
+func (a *Adapter) DockerInstalled() bool       { return DockerInstalled() }
+func (a *Adapter) CreateDockerNetwork() error  { return CreateDockerNetwork() }
+func (a *Adapter) AddUserToDockerGroup() error { return AddUserToDockerGroup() }

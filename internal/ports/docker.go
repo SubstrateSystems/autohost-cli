@@ -6,4 +6,7 @@ type Docker interface {
 	StartApp(app string) error
 	RemoveApp(app string) error
 	GetAppStatus(app string) (string, error)
+	DockerInstalled() bool
+	CreateDockerNetwork() error
+	AddUserToDockerGroup() error
 }

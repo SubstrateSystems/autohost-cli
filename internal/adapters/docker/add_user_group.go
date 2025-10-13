@@ -7,12 +7,11 @@ import (
 	"os/user"
 )
 
-func AddUserToDockerGroup() {
-	// Si eres root en servidor, agrega al usuario “real” si existe.
-	// En contenedor o siendo root sin usuario objetivo, omite.
+func AddUserToDockerGroup() error {
+
 	if runningInContainer() {
 		fmt.Println("⚠️  En contenedor no modifico grupos. Omite este paso.")
-		return
+		return nil
 	}
 	current, _ := user.Current()
 	uid0 := current != nil && current.Uid == "0"
@@ -24,7 +23,7 @@ func AddUserToDockerGroup() {
 	}
 	if u == "" || u == "root" {
 		fmt.Println("ℹ️  Saltando: no hay usuario no-root claro para agregar a 'docker'.")
-		return
+		return nil
 	}
 
 	// Crea grupo si falta y agrega usuario
@@ -33,7 +32,8 @@ func AddUserToDockerGroup() {
 	}
 	if err := utils.Exec("sudo", "usermod", "-aG", "docker", u); err != nil {
 		fmt.Printf("⚠️  No pude agregar el usuario '%s' al grupo docker: %v\n", u, err)
-		return
+		return err
 	}
 	fmt.Printf("✅ Usuario '%s' agregado al grupo 'docker'. Cierra sesión y vuelve a entrar para aplicar cambios.\n", u)
+	return nil
 }
