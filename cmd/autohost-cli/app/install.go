@@ -33,7 +33,7 @@ func appInstallCmd(deps di.Deps) *cobra.Command {
 				printCatalogTable(apps)
 				return nil
 			}
-			if err := svc.InstallApp(ctx, deps); err != nil {
+			if err := svc.InstallApp(ctx); err != nil {
 				return fmt.Errorf("error instalando app: %w", err)
 			}
 
@@ -45,7 +45,7 @@ func appInstallCmd(deps di.Deps) *cobra.Command {
 	return cmd
 }
 
-func printCatalogTable(apps []domain.CatalogApp) {
+func printCatalogTable(apps []domain.CatalogItem) {
 	if len(apps) == 0 {
 		fmt.Println("No hay apps disponibles en el catálogo.")
 		return

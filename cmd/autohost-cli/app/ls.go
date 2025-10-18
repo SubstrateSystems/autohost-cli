@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"text/tabwriter"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -36,14 +35,10 @@ func appLsCmd(deps di.Deps) *cobra.Command {
 			w := tabwriter.NewWriter(os.Stdout, 0, 8, 2, ' ', 0)
 			fmt.Fprintln(w, "ID\tNAME\tINSTALLED AT")
 			for _, a := range apps {
-				createdAt, err := time.Parse("2006-01-02 15:04:05", a.CreatedAt)
-				if err != nil {
-					return fmt.Errorf("error al analizar fecha de creación: %w", err)
-				}
 				fmt.Fprintf(
 					w,
 					"%d\t%s\t%s\n",
-					a.ID, a.Name, createdAt,
+					a.ID, a.Name, a.CreatedAt.Format("2006-01-02 15:04:05"),
 				)
 			}
 			_ = w.Flush()

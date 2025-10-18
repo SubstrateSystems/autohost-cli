@@ -7,15 +7,15 @@ import (
 	"autohost-cli/internal/domain"
 )
 
-type InstalledRepo struct {
+type installedRepo struct {
 	db *sql.DB
 }
 
-func NewInstalledRepo(db *sql.DB) *InstalledRepo {
-	return &InstalledRepo{db: db}
+func NewInstalledRepo(db *sql.DB) domain.InstalledRepo {
+	return &installedRepo{db: db}
 }
 
-func (r *InstalledRepo) List(ctx context.Context) ([]domain.InstalledApp, error) {
+func (r *installedRepo) List(ctx context.Context) ([]domain.InstalledApp, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT id, name, created_at
 		FROM installed_apps
@@ -37,7 +37,7 @@ func (r *InstalledRepo) List(ctx context.Context) ([]domain.InstalledApp, error)
 	return out, rows.Err()
 }
 
-func (r *InstalledRepo) Add(ctx context.Context, app domain.InstalledApp) error {
+func (r *installedRepo) Add(ctx context.Context, app domain.InstalledApp) error {
 	_, err := r.db.ExecContext(ctx, `
 		INSERT INTO installed_apps (name, catalog_app_id) 
 		VALUES (?, ?)
@@ -45,14 +45,14 @@ func (r *InstalledRepo) Add(ctx context.Context, app domain.InstalledApp) error 
 	return err
 }
 
-func (r *InstalledRepo) Remove(ctx context.Context, name string) error {
+func (r *installedRepo) Remove(ctx context.Context, name string) error {
 	_, err := r.db.ExecContext(ctx, `
 		DELETE FROM installed_apps WHERE name = ?
 	`, name)
 	return err
 }
 
-func (r *InstalledRepo) IsInstalledApp(ctx context.Context, name string) (bool, error) {
+func (r *installedRepo) IsInstalledApp(ctx context.Context, name string) (bool, error) {
 	var exists bool
 	err := r.db.QueryRowContext(ctx, `
 		SELECT EXISTS(

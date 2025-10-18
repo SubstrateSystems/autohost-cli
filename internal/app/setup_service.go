@@ -3,7 +3,6 @@ package app
 import (
 	"autohost-cli/internal/ports"
 	"autohost-cli/utils"
-	"errors"
 	"fmt"
 )
 
@@ -12,24 +11,51 @@ type SetupService struct {
 }
 
 func (s *SetupService) Setup() error {
-
+	// 1) Verificar Docker
 	if !s.Docker.DockerInstalled() {
-		if utils.Confirm("Docker no está instalado. ¿Quieres instalarlo ahora? [y/N]: ") {
-			s.Docker.Install()
-			s.Docker.CreateDockerNetwork()
-			return errors.New("Docker instalado. Por favor, reinicia la terminal y ejecuta el comando de nuevo")
-
-		} else {
-			fmt.Println("🚫 Instalación cancelada. Instala Docker manualmente y vuelve a ejecutar el setup.")
+		// Preguntar instalación
+		if !utils.Confirm("Docker no está instalado. ¿Quieres instalarlo ahora? [y/N]: ") {
+			return fmt.Errorf("🚫 instalación cancelada por el usuario: Docker es requerido para continuar")
 		}
 
+		// Instalar Docker
+		if err := runStep("Instalación de Docker", s.Docker.Install); err != nil {
+			return err // ya viene envuelto con contexto y emoji
+		}
+		// Ofrecer agregar al grupo docker
 		if utils.Confirm("¿Deseas agregar tu usuario al grupo 'docker' para usar Docker sin sudo? [y/N]: ") {
-			s.Docker.AddUserToDockerGroup()
+			if err := runStep("Agregar usuario al grupo 'docker'", s.Docker.AddUserToDockerGroup); err != nil {
+				return err
+			}
+			// Nota: newgrp solo afecta a shells interactivos; aquí mejor avisar
+			fmt.Println("ℹ️  Cierra sesión/reinicia la terminal para aplicar los cambios del grupo 'docker'.")
 		}
 
-	} else {
-		fmt.Println("✅ Docker ya está instalado.")
-		s.Docker.CreateDockerNetwork()
+		// Crear red de Docker
+		if err := runStep("Creación de red de Docker", s.Docker.CreateDockerNetwork); err != nil {
+			return err
+		}
+
+		// Todo bien
+		fmt.Println("✅ Docker instalado y configurado.")
+		return nil
 	}
+
+	// 2) Docker ya instalado: crear/red validar red
+	fmt.Println("✅ Docker ya está instalado.")
+	if err := runStep("Creación de red de Docker", s.Docker.CreateDockerNetwork); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// runStep imprime estado y envuelve el error con contexto uniforme
+func runStep(nombre string, fn func() error) error {
+	fmt.Printf("🔄 %s...\n", nombre)
+	if err := fn(); err != nil {
+		return fmt.Errorf("❌ %s: %w", nombre, err)
+	}
+	fmt.Printf("✅ %s completado.\n", nombre)
 	return nil
 }

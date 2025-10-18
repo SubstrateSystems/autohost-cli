@@ -3,7 +3,8 @@ package app
 import (
 	"autohost-cli/assets"
 	"autohost-cli/internal/domain"
-	"autohost-cli/internal/platform/di"
+
+	// "autohost-cli/internal/platform/di"
 	"autohost-cli/internal/ports"
 	"autohost-cli/utils"
 	"path/filepath"
@@ -16,20 +17,21 @@ import (
 )
 
 type AppService struct {
-	Docker ports.Docker
+	Docker    ports.Docker
+	Installed domain.InstalledRepo
 }
 
-func (s *AppService) InstallApp(ctx context.Context, deps di.Deps) error {
+func (s *AppService) InstallApp(ctx context.Context) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	ensureUnique := func(name string) error {
-		exists, err := deps.Repos.Installed.IsInstalledApp(ctx, name)
-		if err != nil {
-			return fmt.Errorf("no se pudo validar el nombre: %w", err)
-		}
-		if exists {
-			return fmt.Errorf("el nombre %q ya está en uso", name)
-		}
+		// exists, err := deps.Repos.Installed.IsInstalledApp(ctx, name)
+		// if err != nil {
+		// 	return fmt.Errorf("no se pudo validar el nombre: %w", err)
+		// }
+		// if exists {
+		// 	return fmt.Errorf("el nombre %q ya está en uso", name)
+		// }
 		return nil
 	}
 
@@ -41,14 +43,14 @@ func (s *AppService) InstallApp(ctx context.Context, deps di.Deps) error {
 
 	startApp := utils.AskInput(reader, fmt.Sprintf("¿Deseas iniciar %s ahora? [Y/N]: ", cfg.Name), "Y")
 
-	appModel := domain.InstalledApp{
-		Name:         cfg.Name,
-		CatalogAppID: cfg.Template,
-	}
+	// appModel := domain.InstalledApp{
+	// 	Name:         cfg.Name,
+	// 	CatalogAppID: cfg.Template,
+	// }
 
-	if err := deps.Repos.Installed.Add(ctx, appModel); err != nil {
-		return fmt.Errorf("error al registrar la aplicación instalada: %w", err)
-	}
+	// if err := deps.Repos.Installed.Add(ctx, appModel); err != nil {
+	// 	return fmt.Errorf("error al registrar la aplicación instalada: %w", err)
+	// }
 
 	if strings.EqualFold(startApp, "Y") {
 		if err := s.Docker.StartApp(cfg.Name); err != nil {
@@ -74,10 +76,12 @@ func (s *AppService) StopApp(name string) error {
 	return nil
 }
 
-func (s *AppService) RemoveApp(name string) error {
+func (s *AppService) RemoveApp(ctx context.Context, name string) error {
 	if err := s.Docker.RemoveApp(name); err != nil {
+
 		return fmt.Errorf("error al eliminar %s: %w", name, err)
 	}
+	s.Installed.Remove(ctx, name)
 	return nil
 }
 
@@ -87,6 +91,27 @@ func (s *AppService) GetAppStatus(name string) (string, error) {
 		return "", fmt.Errorf("error obteniendo estado de %s: %w", name, err)
 	}
 	return status, nil
+}
+
+// ??????????????????????/
+
+func (s AppService) ListInstalled(ctx context.Context) ([]domain.InstalledApp, error) {
+	return s.Installed.List(ctx)
+}
+
+//	func (s AppService) RemoveApp(ctx context.Context, name string) error {
+//		return s.Installed.Remove(ctx, name)
+//	}
+func (s AppService) IsAppInstalled(ctx context.Context, name string) (bool, error) {
+	return s.Installed.IsInstalledApp(ctx, name)
+}
+
+type CatalogService struct {
+	Catalog domain.CatalogRepo
+}
+
+func (s CatalogService) List(ctx context.Context) ([]domain.CatalogItem, error) {
+	return s.Catalog.ListApps(ctx)
 }
 
 // ------------------------- utils -------------------------

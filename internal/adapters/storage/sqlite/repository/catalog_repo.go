@@ -1,21 +1,16 @@
 package repository
 
 import (
-	// "autohost-cli/internal/domain"
 	"autohost-cli/internal/domain"
 	"context"
 	"database/sql"
 )
 
-type CatalogRepo interface {
-	ListApps(ctx context.Context) ([]domain.CatalogApp, error)
-}
-
 type catalogRepo struct{ db *sql.DB }
 
-func NewCatalogRepo(db *sql.DB) CatalogRepo { return &catalogRepo{db} }
+func NewCatalogRepo(db *sql.DB) domain.CatalogRepo { return &catalogRepo{db} }
 
-func (r *catalogRepo) ListApps(ctx context.Context) ([]domain.CatalogApp, error) {
+func (r *catalogRepo) ListApps(ctx context.Context) ([]domain.CatalogItem, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT name, description
 		FROM catalog_apps ORDER BY name`)
@@ -24,13 +19,13 @@ func (r *catalogRepo) ListApps(ctx context.Context) ([]domain.CatalogApp, error)
 	}
 	defer rows.Close()
 
-	var out []domain.CatalogApp
+	var out []domain.CatalogItem
 	for rows.Next() {
-		var model domain.CatalogApp
-		if err := rows.Scan(&model.Name, &model.Description); err != nil {
+		var item domain.CatalogItem
+		if err := rows.Scan(&item.Name); err != nil {
 			return nil, err
 		}
-		out = append(out, model)
+		out = append(out, item)
 	}
 	return out, rows.Err()
 }

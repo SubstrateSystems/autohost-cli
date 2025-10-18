@@ -50,10 +50,10 @@ rm -f "$tmp"
 	}
 
 	// Verificar CLI + daemon
-	if err := exec.Command("docker", "--version").Run(); err != nil {
+	if err := exec.Command("sudo", "docker", "--version").Run(); err != nil {
 		panic("❌ Docker CLI no quedó instalado correctamente.")
 	}
-	if err := exec.Command("docker", "info").Run(); err != nil {
+	if err := exec.Command("sudo", "docker", "info").Run(); err != nil {
 		fmt.Println("⚠️  Docker instalado, pero el daemon no responde aún. Revisa el servicio o reinicia el host.")
 	} else {
 		fmt.Println("✅ Docker instalado y en ejecución.")
