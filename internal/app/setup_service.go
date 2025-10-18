@@ -1,6 +1,7 @@
 package app
 
 import (
+	"autohost-cli/internal/adapters/infra"
 	"autohost-cli/internal/ports"
 	"autohost-cli/utils"
 	"fmt"
@@ -19,12 +20,12 @@ func (s *SetupService) Setup() error {
 		}
 
 		// Instalar Docker
-		if err := runStep("Instalación de Docker", s.Docker.Install); err != nil {
+		if err := infra.RunStep("Instalación de Docker", s.Docker.Install); err != nil {
 			return err // ya viene envuelto con contexto y emoji
 		}
 		// Ofrecer agregar al grupo docker
 		if utils.Confirm("¿Deseas agregar tu usuario al grupo 'docker' para usar Docker sin sudo? [y/N]: ") {
-			if err := runStep("Agregar usuario al grupo 'docker'", s.Docker.AddUserToDockerGroup); err != nil {
+			if err := infra.RunStep("Agregar usuario al grupo 'docker'", s.Docker.AddUserToDockerGroup); err != nil {
 				return err
 			}
 			// Nota: newgrp solo afecta a shells interactivos; aquí mejor avisar
@@ -32,7 +33,7 @@ func (s *SetupService) Setup() error {
 		}
 
 		// Crear red de Docker
-		if err := runStep("Creación de red de Docker", s.Docker.CreateDockerNetwork); err != nil {
+		if err := infra.RunStep("Creación de red de Docker", s.Docker.CreateDockerNetwork); err != nil {
 			return err
 		}
 
@@ -43,19 +44,9 @@ func (s *SetupService) Setup() error {
 
 	// 2) Docker ya instalado: crear/red validar red
 	fmt.Println("✅ Docker ya está instalado.")
-	if err := runStep("Creación de red de Docker", s.Docker.CreateDockerNetwork); err != nil {
+	if err := infra.RunStep("Creación de red de Docker", s.Docker.CreateDockerNetwork); err != nil {
 		return err
 	}
 
-	return nil
-}
-
-// runStep imprime estado y envuelve el error con contexto uniforme
-func runStep(nombre string, fn func() error) error {
-	fmt.Printf("🔄 %s...\n", nombre)
-	if err := fn(); err != nil {
-		return fmt.Errorf("❌ %s: %w", nombre, err)
-	}
-	fmt.Printf("✅ %s completado.\n", nombre)
 	return nil
 }

@@ -22,7 +22,7 @@ func (r *catalogRepo) ListApps(ctx context.Context) ([]domain.CatalogItem, error
 	var out []domain.CatalogItem
 	for rows.Next() {
 		var item domain.CatalogItem
-		if err := rows.Scan(&item.Name); err != nil {
+		if err := rows.Scan(&item.Name, &item.Description); err != nil {
 			return nil, err
 		}
 		out = append(out, item)
