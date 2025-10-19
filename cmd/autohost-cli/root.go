@@ -6,6 +6,7 @@ package cli
 import (
 	"autohost-cli/cmd/autohost-cli/app"
 	"autohost-cli/cmd/autohost-cli/expose"
+	"autohost-cli/cmd/autohost-cli/install"
 	"autohost-cli/cmd/autohost-cli/setup"
 	"autohost-cli/db"
 	"autohost-cli/internal/platform/di"
@@ -63,6 +64,7 @@ func init() {
 	// rootCmd.AddCommand(initializer.InitCommand())
 	deps = di.Build(dbc.DB)
 	rootCmd.AddCommand(app.AppCmd(deps))
+	rootCmd.AddCommand(install.InstallCmd(deps))
 	rootCmd.AddCommand(setup.SetupCmd())
 	rootCmd.AddCommand(expose.ExposeCmd())
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

@@ -3,7 +3,6 @@ package app
 
 import (
 	"autohost-cli/internal/platform/di"
-	"context"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -14,20 +13,17 @@ import (
 func appLsCmd(deps di.Deps) *cobra.Command {
 	return &cobra.Command{
 		Use:   "ls",
-		Short: "Lista las apps instaladas",
+		Short: "List installed applications",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
-			if ctx == nil {
-				ctx = context.Background()
-			}
 
 			apps, err := deps.Services.App.ListInstalled(ctx)
 			if err != nil {
-				return fmt.Errorf("no se pudo obtener lista de apps: %w", err)
+				return fmt.Errorf("could not get list of apps: %w", err)
 			}
 
 			if len(apps) == 0 {
-				fmt.Println("No hay aplicaciones instaladas aún.")
+				fmt.Println("No applications installed yet.")
 				return nil
 			}
 

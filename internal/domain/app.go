@@ -48,6 +48,7 @@ type InstalledRepo interface {
 	List(ctx context.Context) ([]InstalledApp, error)
 	Remove(ctx context.Context, name string) error
 	IsInstalledApp(ctx context.Context, name string) (bool, error)
+	Add(ctx context.Context, app InstalledApp) error
 }
 
 type CatalogItem struct {

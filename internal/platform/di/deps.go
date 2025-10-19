@@ -4,6 +4,8 @@ import (
 	"autohost-cli/internal/adapters/storage/sqlite/repository"
 	"autohost-cli/internal/app"
 	"autohost-cli/internal/domain"
+
+	// "autohost-cli/internal/app"
 	"database/sql"
 )
 

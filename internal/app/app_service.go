@@ -21,21 +21,21 @@ type AppService struct {
 	Installed domain.InstalledRepo
 }
 
-func (s *AppService) InstallApp(ctx context.Context) error {
+func (s *AppService) InstallApp(ctx context.Context, appTemplate string) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	ensureUnique := func(name string) error {
-		// exists, err := deps.Repos.Installed.IsInstalledApp(ctx, name)
-		// if err != nil {
-		// 	return fmt.Errorf("no se pudo validar el nombre: %w", err)
-		// }
-		// if exists {
-		// 	return fmt.Errorf("el nombre %q ya está en uso", name)
-		// }
+		exists, err := s.Installed.IsInstalledApp(ctx, name)
+		if err != nil {
+			return fmt.Errorf("no se pudo validar el nombre: %w", err)
+		}
+		if exists {
+			return fmt.Errorf("el nombre %q ya está en uso", name)
+		}
 		return nil
 	}
 
-	cfg := askAppConfig(reader, ensureUnique)
+	cfg := askAppConfig(reader, appTemplate, ensureUnique)
 
 	if err := install(cfg); err != nil {
 		return fmt.Errorf("error al instalar %s: %w", cfg.Name, err)
@@ -43,14 +43,14 @@ func (s *AppService) InstallApp(ctx context.Context) error {
 
 	startApp := utils.AskInput(reader, fmt.Sprintf("¿Deseas iniciar %s ahora? [Y/N]: ", cfg.Name), "Y")
 
-	// appModel := domain.InstalledApp{
-	// 	Name:         cfg.Name,
-	// 	CatalogAppID: cfg.Template,
-	// }
+	appModel := domain.InstalledApp{
+		Name:         cfg.Name,
+		CatalogAppID: cfg.Template,
+	}
 
-	// if err := deps.Repos.Installed.Add(ctx, appModel); err != nil {
-	// 	return fmt.Errorf("error al registrar la aplicación instalada: %w", err)
-	// }
+	if err := s.Installed.Add(ctx, appModel); err != nil {
+		return fmt.Errorf("error al registrar la aplicación instalada: %w", err)
+	}
 
 	if strings.EqualFold(startApp, "Y") {
 		if err := s.Docker.StartApp(cfg.Name); err != nil {
@@ -171,7 +171,7 @@ func setValues(app domain.AppConfig) map[string]string {
 	return values
 }
 
-func askAppConfig(reader *bufio.Reader, ensureUnique func(string) error) domain.AppConfig {
+func askAppConfig(reader *bufio.Reader, appTemplate string, ensureUnique func(string) error) domain.AppConfig {
 	defaultAppName := "appdemo"
 	var name string
 	for {
@@ -183,39 +183,37 @@ func askAppConfig(reader *bufio.Reader, ensureUnique func(string) error) domain.
 		break
 	}
 
-	defaultTemplate := "bookstack"
+	// template := utils.AskInput(reader, "📦 Tipo de template (bookstack, nextcloud, redis, mysql, postgres)", defaultTemplate)
 
-	template := utils.AskInput(reader, "📦 Tipo de template (bookstack, nextcloud, redis, mysql, postgres)", defaultTemplate)
-
-	if template == "mysql" {
+	if appTemplate == "mysql" {
 		mysqlCfg := askMySQLConfig(reader, name)
 		return domain.AppConfig{
 			Name:     name,
-			Template: template,
+			Template: appTemplate,
 			Port:     mysqlCfg.Port,
 			MySQL:    mysqlCfg,
 		}
 	}
 
-	if template == "postgres" {
+	if appTemplate == "postgres" {
 		postgresCfg := askMyPostgresConfig(reader, name)
 		return domain.AppConfig{
 			Name:     name,
-			Template: template,
+			Template: appTemplate,
 			Port:     postgresCfg.Port,
 			Postgres: postgresCfg,
 		}
 	}
 
-	port := utils.AskAppPort(reader, "🔌 Puerto del host a utilizar", domain.TemplatePorts[template])
+	port := utils.AskAppPort(reader, "🔌 Puerto del host a utilizar", domain.TemplatePorts[appTemplate])
 	var mysqlCfg *domain.MySQLConfig
-	if template == "nextcloud" || template == "bookstack" {
+	if appTemplate == "nextcloud" || appTemplate == "bookstack" {
 		mysqlCfg = askMySQLConfig(reader, name)
 	}
 
 	return domain.AppConfig{
 		Name:     name,
-		Template: template,
+		Template: appTemplate,
 		Port:     port,
 		MySQL:    mysqlCfg,
 	}

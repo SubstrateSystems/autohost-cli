@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"autohost-cli/internal/domain"
 )
@@ -17,10 +18,10 @@ func NewInstalledRepo(db *sql.DB) domain.InstalledRepo {
 
 func (r *installedRepo) List(ctx context.Context) ([]domain.InstalledApp, error) {
 	rows, err := r.db.QueryContext(ctx, `
-		SELECT id, name, created_at
-		FROM installed_apps
-		ORDER BY created_at DESC
-	`)
+        SELECT id, name, created_at
+        FROM installed_apps
+        ORDER BY created_at DESC
+    `)
 	if err != nil {
 		return nil, err
 	}
@@ -28,11 +29,25 @@ func (r *installedRepo) List(ctx context.Context) ([]domain.InstalledApp, error)
 
 	var out []domain.InstalledApp
 	for rows.Next() {
-		var a domain.InstalledApp
-		if err := rows.Scan(&a.ID, &a.Name, &a.CreatedAt); err != nil {
+		var (
+			id   int64
+			name string
+			ts   sql.NullInt64 // <-- unixepoch en segundos
+		)
+		if err := rows.Scan(&id, &name, &ts); err != nil {
 			return nil, err
 		}
-		out = append(out, a)
+
+		var createdAt time.Time
+		if ts.Valid {
+			createdAt = time.Unix(ts.Int64, 0).UTC()
+		}
+
+		out = append(out, domain.InstalledApp{
+			ID:        int64(id),
+			Name:      name,
+			CreatedAt: createdAt,
+		})
 	}
 	return out, rows.Err()
 }
