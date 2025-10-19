@@ -6,13 +6,11 @@ package cli
 import (
 	"autohost-cli/cmd/autohost-cli/app"
 	"autohost-cli/cmd/autohost-cli/expose"
+	"autohost-cli/cmd/autohost-cli/install"
 	"autohost-cli/cmd/autohost-cli/setup"
 	"autohost-cli/db"
-	"autohost-cli/internal/adapters/storage/sqlite"
-	appInternal "autohost-cli/internal/app"
 	"autohost-cli/internal/platform/di"
 	"autohost-cli/utils"
-	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -64,28 +62,12 @@ func init() {
 	}
 
 	// rootCmd.AddCommand(initializer.InitCommand())
-	deps = buildDeps(dbc.DB)
+	deps = di.Build(dbc.DB)
 	rootCmd.AddCommand(app.AppCmd(deps))
+	rootCmd.AddCommand(install.InstallCmd(deps))
 	rootCmd.AddCommand(setup.SetupCmd())
 	rootCmd.AddCommand(expose.ExposeCmd())
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func buildDeps(sqlDB *sql.DB) di.Deps {
-	installedRepo := sqlite.NewInstalledRepo(sqlDB)
-	catalogRepo := sqlite.NewCatalogRepo(sqlDB)
-
-	return di.Deps{
-		DB: sqlDB,
-		Repos: di.Repos{
-			Installed: installedRepo,
-			Catalog:   catalogRepo,
-		},
-		Services: di.Services{
-			App:     appInternal.AppService{Installed: installedRepo},
-			Catalog: appInternal.CatalogService{Catalog: catalogRepo},
-		},
-	}
 }
 
 func ensureAutohostDirs() error {

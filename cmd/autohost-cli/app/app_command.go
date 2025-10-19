@@ -9,11 +9,9 @@ import (
 func AppCmd(deps di.Deps) *cobra.Command {
 	appCmd := &cobra.Command{
 		Use:   "app",
-		Short: "Gestión de aplicaciones autohospedadas",
+		Short: "Application management",
 	}
 
-	// agrega subcomandos construidos en este mismo paquete
-	appCmd.AddCommand(appInstallCmd(deps))
 	appCmd.AddCommand(appLsCmd(deps))
 	appCmd.AddCommand(appRemoveCmd(deps))
 	appCmd.AddCommand(appStartCmd())

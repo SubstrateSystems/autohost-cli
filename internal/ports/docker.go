@@ -2,5 +2,11 @@ package ports
 
 type Docker interface {
 	Install() error
-	Login() error
+	StopApp(app string) error
+	StartApp(app string) error
+	RemoveApp(app string) error
+	GetAppStatus(app string) (string, error)
+	DockerInstalled() bool
+	CreateDockerNetwork() error
+	AddUserToDockerGroup() error
 }
