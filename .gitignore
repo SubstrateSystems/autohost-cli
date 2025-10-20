@@ -13,3 +13,5 @@ autohost.exe
 Thumbs.db
 
 dist/
+
+.env

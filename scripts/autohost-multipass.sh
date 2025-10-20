@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VM_NAME="autohost-test"
+NO_SHELL="${NO_SHELL:-0}"
 
+VM_NAME="autohost-test"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 BIN_DIR="${REPO_ROOT}/dist"
@@ -28,6 +29,7 @@ build_binary() {
 }
 
 launch_vm() {
+
   if multipass info "${VM_NAME}" >/dev/null 2>&1; then
     log "The VM ${VM_NAME} already exists. Skipping creation."
   else
@@ -48,10 +50,19 @@ ensure_vm_running() {
 push_and_install() {
   log "Transfer binary to the VM..."
   multipass transfer "${LOCAL_BIN}" "${VM_NAME}:/home/ubuntu/autohost"
+
   log "Moving to /usr/local/bin..."
   multipass exec "${VM_NAME}" -- bash -lc 'sudo mv /home/ubuntu/autohost /usr/local/bin/autohost && sudo chmod +x /usr/local/bin/autohost'
+
   log "Testing execution inside the VM..."
-  multipass exec "${VM_NAME}" -- autohost --help || true
+  # usa bash -lc para asegurar PATH, y tolera exit codes
+  multipass exec "${VM_NAME}" -- bash -lc 'autohost --help || true'
+
+  if [[ "${NO_SHELL}" = "1" ]]; then
+    log "NO_SHELL=1 -> skipping interactive shell."
+    return
+  fi
+
   multipass shell "${VM_NAME}"
 }
 
@@ -90,9 +101,17 @@ update_binary() {
 }
 
 cmd_run() {
+  set -euo pipefail
+
   ensure_tools
   build_binary
   launch_vm
+
+  # (opcional) verifica que la VM esté corriendo antes de seguir
+  if ! multipass list --format csv | grep -q "^${VM_NAME},Running"; then
+    log "ERROR: VM ${VM_NAME} no está en Running"; exit 1
+  fi
+
   push_and_install
 }
 
