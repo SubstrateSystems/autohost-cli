@@ -122,9 +122,9 @@ You need to have **Multipass** installed: https://canonical.com/multipass
 
 | Command                              | Description                                                    |
 |--------------------------------------|----------------------------------------------------------------|
-| `scripts/autohost-multipass.sh run`    | Creates VM (autohost-test) with autohost binary in bin folder |
-| `scripts/autohost-multipass.sh update` | Updates autohost binary in VM (autohost-test) bin folder      |
-| `scripts/autohost-multipass.sh delete` | Deletes the VM (autohost-test)                                |
+| `make vm-run`                        | Creates VM (autohost-test) with autohost binary in bin folder |
+| `make vm-update`                     | Updates autohost binary in VM (autohost-test) bin folder      |
+| `make vm-delete`                     | Deletes the VM (autohost-test)                                |
 
 ---
 
