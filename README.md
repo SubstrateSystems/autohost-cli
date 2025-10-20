@@ -1,119 +1,166 @@
-```txt
-    
-    / \  _   _| |_ ___| |__   ___  ___| |_   / __| |   |_ _|
-   / _ \| | | | __/ _ \ '_ \ / _ \/ __| __| | |  | |    | | 
-  / ___ \ |_| | ||  _ \ | | | (_) \__ \ |_  | |__| |___ | | 
- /_/   \_\__,_|\__\___|_| |_|\___/|___/\__|  \___|_____|___|                        
-```
+![autohost-cli](./autohost-cli.png)
+
 
 # 🚀 AutoHost CLI
 
-**Recupera el control de tus servicios.**  
-**AutoHost CLI** es una herramienta de línea de comandos para instalar, configurar y administrar aplicaciones y servicios **en tu propio servidor**, sin depender de terceros y con un flujo de trabajo sencillo y automatizado.
+**Take back control of your services.**  
+**AutoHost CLI** is a command-line tool to install, configure, and manage applications and services **on your own server**, without depending on third parties and with a simple and automated workflow.
 
 ---
 
-## 🌟 Características
+## 🌟 Features
 
-- **Instalación en un comando**: Despliega aplicaciones listas para usar con `app install`.
-- **Soporte para múltiples apps**: Nextcloud, BookStack, Redis, MySQL y más (¡en constante crecimiento!).
-- **Integración con Tailscale**: Conéctate de forma segura a tu infraestructura privada.
-- **Compatibilidad con Docker**: Aislamiento y portabilidad de tus aplicaciones.
-- **Enfoque en privacidad y control**: Todo se ejecuta en **tu** infraestructura.
-
----
-
-## ⚙️ Requisitos Previos
-
-Antes de instalar, asegúrate de contar con:
-- Un sistema basado en **Linux** (compatible con distribuciones modernas como Ubuntu/Debian).  
-- **Docker** instalado y corriendo.  
-- Permisos de administrador (**sudo/root**).  
-- Opcional: cuenta de **Tailscale** si quieres habilitar acceso seguro privado.  
+- **One-command installation**: Deploy ready-to-use applications with `app install`.
+- **Multi-app support**: Nextcloud, BookStack, Redis, MySQL, PostgreSQL, and more (constantly growing!).
+- **Tailscale integration**: Securely connect to your private infrastructure.
+- **Docker compatibility**: Isolation and portability for your applications.
+- **Privacy and control focus**: Everything runs on **your** infrastructure.
 
 ---
 
-## 📦 Instalación
+## ⚙️ Prerequisites
 
-Instala AutoHost CLI directamente desde GitHub con un solo comando:
+Before installing, make sure you have:
+- A **Linux**-based system (compatible with modern distributions like Ubuntu/Debian).  
+- **Docker** installed and running.  
+- Administrator permissions (**sudo/root**).  
+- Optional: **Tailscale** account if you want to enable secure private access.  
+
+---
+
+## 📦 Installation
+
+Install AutoHost CLI directly from GitHub with a single command:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mazapanuwu13/autohost-cli/main/scripts/install.sh | bash
 ```
 
-Este script detecta automáticamente tu sistema operativo y arquitectura, descarga la versión más reciente del binario desde GitHub Releases e instala AutoHost CLI en tu sistema.
+This script automatically detects your operating system and architecture, downloads the latest binary version from GitHub Releases, and installs AutoHost CLI on your system.
 
 ---
 
-## 🛠 Uso Básico
+## 🛠 Basic Usage
 
-### Flujo de ejemplo
+### Example workflow
 
 ```bash
-# Inicializar entorno
+# Initialize environment
 autohost init
 
-# Configuración inicial (dominio, redes, etc.)
+# Initial setup (domain, networks, etc.)
 autohost setup
 
-# Instalar una aplicación (ejemplo: Nextcloud)
+# Install an application (example: Nextcloud)
 autohost app install
 
-# Levantar la aplicación
+# List installed applications
+autohost app ls
+
+# Start the application
 autohost app start nextcloud
 
-# Ver estado de la app
+# Check app status
 autohost app status nextcloud
+
+# Stop the application
+autohost app stop nextcloud
+
+# Remove an application
+autohost app remove nextcloud
 ```
 
 ---
 
-## 📂 Aplicaciones soportadas
+## 📂 Supported Applications
 
-| App        | Puerto por defecto | Estado  |
-|------------|-------------------|---------|
-| Nextcloud  | 8081              | ✅ Estable |
-| BookStack  | 6875              | ✅ Estable |
-| MySQL      | 3306              | ✅ Estable |
+| App        | Default Port | Status      |
+|------------|-------------|-------------|
+| Nextcloud  | 8081        | ✅ Stable   |
+| BookStack  | 6875        | ✅ Stable   |
+| MySQL      | 3306        | ✅ Stable   |
+| PostgreSQL | 5432        | ✅ Stable   |
+| Redis      | 6379        | ✅ Stable   |
 
-*(La lista crece con cada versión. ¡Tu feedback ayuda a priorizar nuevas apps!)*
-
----
-## Env Test
-### Es Necesario tener instalado multipass: https://canonical.com/multipass
-
-|Command                              | Descripcion                                                          |
-|-------------------------------------|----------------------------------------------------------------------|
-|scripts/autohost-multipass.sh run    |Crea la VM (autohost-test) con el binario autohost en la carpeta bin  |
-|scripts/autohost-multipass.sh update |Actauliza el binaio autohost de la VM(autohost-test) en la carpeta bin|   
-|scripts/autohost-multipass.sh delete |Elimina la VM (autohost-test)                                         |
+*(The list grows with each version. Your feedback helps prioritize new apps!)*
 
 ---
 
+## 🏗 Architecture
 
-## 🔒 Filosofía
+The project follows **Clean Architecture** principles with the following structure:
 
-En un mundo donde la mayoría de las aplicaciones están en la nube, **AutoHost CLI** te devuelve el poder:  
-- Controlas **tus datos**.  
-- Eliminas la dependencia de múltiples SaaS.  
-- Construyes tu propia infraestructura, escalable y privada.  
+```
+autohost-cli/
+├── cmd/                    # CLI commands (Cobra)
+├── internal/
+│   ├── adapters/          # External integrations (Docker, Caddy, Tailscale, etc.)
+│   │   └── storage/       # Database repositories (SQLite)
+│   ├── app/               # Application services (business logic)
+│   ├── domain/            # Domain models and interfaces
+│   └── platform/          # Platform utilities (config, DI, filesystem)
+├── db/                    # Database migrations and seeds
+├── assets/                # Embedded templates (docker-compose files)
+├── utils/                 # Utility functions
+└── scripts/               # Installation and testing scripts
+```
+
+### Key Components
+
+- **Domain Layer**: Core business logic and interfaces
+- **Application Layer**: Use cases and service orchestration
+- **Adapters Layer**: External integrations (Docker, Caddy, Tailscale, CloudFlare, etc.)
+- **Infrastructure**: Database, configuration, and platform-specific code
 
 ---
 
-## 🤝 Contribuir
+## 🧪 Testing Environment
 
-¿Quieres aportar?  
-1. Haz un fork del repositorio.  
-2. Crea una rama para tu feature/fix.  
-3. Envía un Pull Request.  
-4. Revisa las issues con la etiqueta **good first issue** para comenzar.
+### Multipass VM for Testing
 
----
+You need to have **Multipass** installed: https://canonical.com/multipass
 
-## 📜 Licencia
-
-Este proyecto está bajo la licencia **MIT**.
+| Command                              | Description                                                    |
+|--------------------------------------|----------------------------------------------------------------|
+| `scripts/autohost-multipass.sh run`    | Creates VM (autohost-test) with autohost binary in bin folder |
+| `scripts/autohost-multipass.sh update` | Updates autohost binary in VM (autohost-test) bin folder      |
+| `scripts/autohost-multipass.sh delete` | Deletes the VM (autohost-test)                                |
 
 ---
 
-> 💡 **Consejo:** Si quieres recibir actualizaciones y novedades, visita [autohst.dev](https://autohst.dev) o síguenos en redes.
+## 🔒 Philosophy
+
+In a world where most applications are in the cloud, **AutoHost CLI** gives you back the power:  
+- You control **your data**.  
+- You eliminate dependency on multiple SaaS providers.  
+- You build your own scalable and private infrastructure.  
+
+---
+
+## 🤝 Contributing
+
+Want to contribute?  
+1. Fork the repository.  
+2. Create a branch for your feature/fix.  
+3. Submit a Pull Request.  
+4. Check issues labeled **good first issue** to get started.
+
+### Development Guidelines
+
+- Follow Go 1.23.0 standards
+- Use `gofmt` and `goimports` for formatting
+- Run `go vet` before committing
+- Keep functions small and focused
+- Wrap errors with context: `fmt.Errorf("context: %w", err)`
+- Maintain idempotency in commands
+- No secrets in logs or error messages
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**.
+
+---
+
+> 💡 **Tip:** For updates and news, visit [autohst.dev](https://autohst.dev) or follow us on social media.
