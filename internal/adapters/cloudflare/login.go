@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-func LoginCloudflare() error {
+func Login() error {
 	fmt.Println("🔑 Iniciando sesión en Cloudflare...")
 
 	loginCmd := exec.Command("cloudflared", "tunnel", "login")

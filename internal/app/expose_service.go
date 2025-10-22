@@ -1,7 +1,6 @@
 package app
 
 import (
-	"autohost-cli/internal/adapters/terraform"
 	"autohost-cli/internal/ports"
 	"context"
 	"fmt"
@@ -16,7 +15,7 @@ type ExposeService struct {
 	Terraform  ports.Terraform
 }
 
-func (s *ExposeService) SetupPrivate(ctx context.Context, domain string) error {
+func (s *ExposeService) SetupPrivate(ctx context.Context) error {
 	if err := s.Caddy.Install(); err != nil {
 		return fmt.Errorf("caddy install: %w", err)
 	}
@@ -52,23 +51,18 @@ func (s *ExposeService) SetupPrivate(ctx context.Context, domain string) error {
 	}
 	fmt.Println("🧩 CoreDNS listo. Corefile:", corefilePath)
 
-	if s.SplitDNS != nil && domain != "" {
-		if err := s.SplitDNS.Ensure(domain, []string{ip}); err != nil {
-			return fmt.Errorf("split-dns: %w", err)
-		}
-	}
 	return nil
 }
 
-func (s *ExposeService) SetupPublic(domain string) error {
-	if domain == "" {
-		return fmt.Errorf("domain requerido en modo public")
-	}
+func (s *ExposeService) SetupPublic() error {
 	if err := s.Cloudflare.Install(); err != nil {
 		return fmt.Errorf("cloudflare install: %w", err)
 	}
 	if err := s.Cloudflare.Login(); err != nil {
 		return fmt.Errorf("cloudflare login: %w", err)
+	}
+	if err := s.Cloudflare.Tunnel(); err != nil {
+		return fmt.Errorf("cloudflare tunnel: %w", err)
 	}
 	return nil
 }
@@ -86,7 +80,7 @@ func (s *ExposeService) ExposeApp(ctx context.Context, subdomain string, nameApp
 			subdomain: {tailscaleIP},
 		},
 	}
-	if err := terraform.ApplySplitDNS(ctx, nameApp, cfg); err != nil {
+	if err := s.Terraform.ApplySplitDNS(ctx, nameApp, cfg); err != nil {
 		fmt.Printf("⚠️  No se pudo aplicar Split DNS en Tailscale: %v\n", err)
 	}
 

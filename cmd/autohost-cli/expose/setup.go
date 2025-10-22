@@ -6,10 +6,11 @@ import (
 
 	"autohost-cli/internal/app"
 
-	acaddy "autohost-cli/internal/adapters/caddy"
-	acloud "autohost-cli/internal/adapters/cloudflare"
-	acoredns "autohost-cli/internal/adapters/coreDNS"
-	ats "autohost-cli/internal/adapters/tailscale"
+	"autohost-cli/internal/adapters/caddy"
+	"autohost-cli/internal/adapters/cloudflare"
+	coredns "autohost-cli/internal/adapters/coreDNS"
+	"autohost-cli/internal/adapters/tailscale"
+	"autohost-cli/internal/adapters/terraform"
 
 	"github.com/spf13/cobra"
 )
@@ -20,10 +21,11 @@ func exposeSetupCmd() *cobra.Command {
 
 	// Composition root: construir adapters reales
 	var svc = &app.ExposeService{
-		Caddy:      acaddy.New(),
-		Tailscale:  ats.New(),
-		CoreDNS:    acoredns.New(),
-		Cloudflare: acloud.New(),
+		Caddy:      caddy.New(),
+		Tailscale:  tailscale.New(),
+		CoreDNS:    coredns.New(),
+		Cloudflare: cloudflare.New(),
+		Terraform:  terraform.New(),
 	}
 
 	cmd := &cobra.Command{
@@ -31,14 +33,13 @@ func exposeSetupCmd() *cobra.Command {
 		Short: "Configura la exposición de servicios",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			mode = strings.ToLower(strings.TrimSpace(mode))
+			fmt.Println("Modo seleccionado:", mode)
 			switch mode {
 			case "private", "public":
 			default:
 				return fmt.Errorf("modo inválido: %q (usa: private|public)", mode)
 			}
-			if mode == "public" && strings.TrimSpace(domain) == "" {
-				return fmt.Errorf("--domain es requerido en --mode=public")
-			}
+
 			_ = yes
 			return nil
 		},
@@ -48,18 +49,17 @@ func exposeSetupCmd() *cobra.Command {
 			switch mode {
 			case "private":
 				fmt.Println("🔒 Modo PRIVATE: tailnet + DNS interno")
-				return svc.SetupPrivate(ctx, domain)
+				return svc.SetupPrivate(ctx)
 			case "public":
 				fmt.Printf("🌍 Modo PUBLIC con dominio: %s\n", domain)
-				return svc.SetupPublic(domain)
+				return svc.SetupPublic()
 			default:
 				return fmt.Errorf("modo inválido")
 			}
 		},
 	}
 
-	cmd.Flags().StringVarP(&mode, "mode", "m", "private", "private | public")
-	cmd.Flags().StringVar(&domain, "domain", "", "Dominio base para exposición pública")
+	cmd.Flags().StringVarP(&mode, "mode", "m", "", "private | public")
 	cmd.Flags().BoolVarP(&yes, "yes", "y", false, "Confirmar automáticamente")
 
 	_ = cmd.RegisterFlagCompletionFunc("mode", func(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {

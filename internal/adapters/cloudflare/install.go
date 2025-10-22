@@ -7,11 +7,11 @@ import (
 	"os/exec"
 )
 
-func InstallCloudflare() error {
+func Install() error {
 	fmt.Println("🌐 Instalando Cloudflare Tunnel (cloudflared)...")
 
-	downloadURL := config.MustString("url.toml", "cloudflared", "download_url")
-	installPath := config.MustString("url.toml", "cloudflared", "install_path")
+	downloadURL := config.MustString("urls.toml", "cloudflare", "download_url")
+	installPath := config.MustString("urls.toml", "cloudflare", "install_path")
 
 	cmd := exec.Command("sh", "-c", fmt.Sprintf(`
 		curl -L %s -o cloudflared &&

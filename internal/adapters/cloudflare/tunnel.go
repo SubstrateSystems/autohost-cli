@@ -6,18 +6,19 @@ import (
 	"os/exec"
 )
 
-func TunnelCloudflare(domain string) {
+func Tunnel() error {
 	fmt.Println("🌐 Iniciando túnel de Cloudflare...")
 
-	fmt.Printf("⚙️ Creando túnel para %s...\n", domain)
+	fmt.Printf("⚙️ Creando túnel para %s...\n", "autohost-tunnel")
 	// Crear el túnel
 	createCmd := exec.Command("cloudflared", "tunnel", "create", "autohost-tunnel")
 	createCmd.Stdout = os.Stdout
 	createCmd.Stderr = os.Stderr
-	err := createCmd.Run()
-	if err != nil {
+
+	if err := createCmd.Run(); err != nil {
 		fmt.Println("❌ Error al crear túnel:", err)
-		return
+		return err
 	}
 
+	return nil
 }
