@@ -1,30 +1,35 @@
 # Database Seeding
 
-Este directorio contiene los archivos de seeding para poblar la base de datos con datos iniciales.
+This directory contains seeding files to populate the database with initial data.
 
-## Estructura
+## Structure
 
-- Los archivos de seeding deben seguir el patrón `XXX_nombre.sql` donde `XXX` es un número de orden (ej: `001_catalog_apps.sql`)
-- Los seeds se ejecutan automáticamente después de las migraciones al inicializar la aplicación
-- El sistema trackea qué seeds ya se han ejecutado usando la tabla `_seeds`
-- Los seeds son idempotentes - pueden ejecutarse múltiples veces sin causar errores
+- Seeding files must follow the pattern `XXX_name.sql` where `XXX` is an order number (e.g., `001_catalog_apps.sql`)
+- Seeds are automatically executed after migrations when initializing the application
+- The system tracks which seeds have already been executed using the `_seeds` table
+- Seeds are idempotent - they can be executed multiple times without causing errors
 
-## Seeds Actuales
+## Current Seeds
 
 ### 001_catalog_apps.sql
-Inserta las aplicaciones disponibles en el catálogo:
-- bookstack: Plataforma para organizar y almacenar información
-- nextcloud: Suite de software para servicios de hosting de archivos  
-- redis: Base de datos en memoria para cache y mensajería
+Inserts available applications into the catalog:
+- bookstack: Platform for organizing and storing information
+- nextcloud: Software suite for file hosting services
+- redis: In-memory database for caching and messaging
 
-## Agregar Nuevos Seeds
+### 002_catalog_apps.sql
+Additional catalog applications:
+- mysql: Relational database management system
+- postgres: Advanced open-source relational database
 
-1. Crear un archivo con formato `XXX_nombre.sql` en este directorio
-2. Usar `INSERT OR IGNORE` para evitar duplicados
-3. Los seeds se ejecutarán automáticamente en el próximo arranque de la aplicación
+## Adding New Seeds
 
-## Notas
+1. Create a file with format `XXX_name.sql` in this directory
+2. Use `INSERT OR IGNORE` to avoid duplicates
+3. Seeds will be automatically executed on the next application startup
 
-- Los seeds se ejecutan en orden alfabético de nombre de archivo
-- Una vez ejecutado, un seed no se vuelve a ejecutar
-- Si necesitas modificar datos existentes, crea un nuevo seed con un número mayor
+## Notes
+
+- Seeds are executed in alphabetical order by filename
+- Once executed, a seed is not re-executed
+- If you need to modify existing data, create a new seed with a higher number

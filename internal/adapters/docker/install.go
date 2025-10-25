@@ -14,14 +14,14 @@ type osRelease struct {
 	IDLike string
 }
 
-func InstallDocker() {
+func Install() error {
 	if runningInContainer() {
 		fmt.Println("⚠️  Detecté contenedor. No instalo Docker aquí. Usa el socket del host o dind para pruebas.")
-		return
+		return nil
 	}
 	if dockerAvailable() {
 		fmt.Println("✅ Docker ya está instalado.")
-		return
+		return nil
 	}
 	fmt.Println("🔄 Instalando Docker...")
 
@@ -50,14 +50,15 @@ rm -f "$tmp"
 	}
 
 	// Verificar CLI + daemon
-	if err := exec.Command("docker", "--version").Run(); err != nil {
+	if err := exec.Command("sudo", "docker", "--version").Run(); err != nil {
 		panic("❌ Docker CLI no quedó instalado correctamente.")
 	}
-	if err := exec.Command("docker", "info").Run(); err != nil {
+	if err := exec.Command("sudo", "docker", "info").Run(); err != nil {
 		fmt.Println("⚠️  Docker instalado, pero el daemon no responde aún. Revisa el servicio o reinicia el host.")
 	} else {
 		fmt.Println("✅ Docker instalado y en ejecución.")
 	}
+	return nil
 }
 
 func ensureCurl() error {

@@ -1,0 +1,29 @@
+# # .github/workflows/e2e.yml (resumen)
+
+# name: release
+# on:
+#   push:
+#     branches:
+#       - main
+#       - 'release/**'
+#       - 'develop/**'
+
+# permissions:
+#   contents: write
+
+# jobs:
+#   e2e:
+#     runs-on: self-hosted   # Multipass requerido
+
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: actions/setup-go@v5
+#         with: { go-version: "1.23" }
+#       - name: E2E
+#         run: go test ./tests/e2e -tags=e2e -v -timeout=${E2E_TIMEOUT:-45m}
+#       - name: Logs (si falla)
+#         if: failure()
+#         run: multipass exec ${VM_NAME:-autohost-test} -- bash -lc 'tar czf /tmp/autohost-logs.tgz /opt/autohost/logs || true'
+#       # - name: Descargar logs (si falla)
+#         # if: failure()
+#         # run: multipass copy-files ${VM_NAME:-autohost-test}:/tmp/autohost-logs.tgz ./autohost-logs.tgz

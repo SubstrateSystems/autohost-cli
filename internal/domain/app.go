@@ -1,19 +1,25 @@
 package domain
 
+import (
+	"context"
+	"time"
+)
+
 type CatalogApp struct {
-	Name        string `db:"name"`
-	Description string `db:"description"`
-	CreatedAt   string `db:"created_at"`
-	UpdatedAt   string `db:"updated_at"`
+	Name        string
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 type InstalledApp struct {
-	ID           int64  `db:"id" `
-	Name         string `db:"name"`
-	CatalogAppID string `db:"catalog_app_id"`
-	CreatedAt    string `db:"created_at"`
+	ID           int64
+	Name         string
+	CatalogAppID string
+	CreatedAt    time.Time
 }
 
+// Configuración: pertenece al dominio si expresa reglas del negocio
 type AppConfig struct {
 	Name     string
 	Template string
@@ -35,4 +41,23 @@ type PostgresConfig struct {
 	Password string
 	Database string
 	Port     string
+}
+
+// ????????????????
+type InstalledRepo interface {
+	List(ctx context.Context) ([]InstalledApp, error)
+	Remove(ctx context.Context, name string) error
+	IsInstalledApp(ctx context.Context, name string) (bool, error)
+	Add(ctx context.Context, app InstalledApp) error
+}
+
+type CatalogItem struct {
+	Name        string
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type CatalogRepo interface {
+	ListApps(ctx context.Context) ([]CatalogItem, error)
 }
