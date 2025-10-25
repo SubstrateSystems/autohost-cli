@@ -1,4 +1,4 @@
-# .goreleaser.yaml (en la raíz)
+version: 2
 project_name: autohost
 
 release:
@@ -7,23 +7,23 @@ release:
 
 builds:
   - id: autohost
-    main: ./cmd/autohost-cli
+    main: .                 # ← raíz: donde está tu main.go
     binary: autohost
     env:
       - CGO_ENABLED=0
-    goos: [linux, darwin]       # sin Windows
+    goos: [linux, darwin]
     goarch: [amd64, arm64]
+    flags: [ -trimpath ]
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
       - -X main.commit={{.ShortCommit}}
       - -X main.date={{.Date}}
-    flags: [ -trimpath ]
 
 archives:
   - id: binario_plano
-    builds: [autohost]
-    format: binary
+    ids: [autohost]                      
+    formats: [binary]                      
     name_template: "{{ .Binary }}-{{ .Os }}-{{ .Arch }}"
 
 checksum:
