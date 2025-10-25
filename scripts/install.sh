@@ -6,12 +6,15 @@ BIN_NAME="autohost"
 
 # Detect PATH-friendly BIN_DIR (prioriza /usr/local/bin, si no, ~/.local/bin)
 default_bin_dir() {
-  if [ -w "/usr/local/bin" ] || sudo -n true 2>/dev/null; then
+  if [ -w "/usr/local/bin" ]; then
     echo "/usr/local/bin"
   else
-    echo "${HOME}/.local/bin"
+    echo "🔒 Instalación global requiere permisos de administrador."
+    sudo mkdir -p /usr/local/bin
+    echo "/usr/local/bin"
   fi
 }
+
 
 PREFIX="${PREFIX:-/usr/local}"
 BIN_DIR="${BIN_DIR:-$(default_bin_dir)}"
