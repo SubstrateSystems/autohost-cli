@@ -8,7 +8,7 @@ release:
 
 builds:
   - id: autohost
-    main: ./cmd/autohost-cli
+    main: ./
     binary: autohost
     env:
       - CGO_ENABLED=0
