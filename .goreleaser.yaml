@@ -22,8 +22,8 @@ builds:
 
 archives:
   - id: binario_plano
-    ids: [autohost]                        
-    formats: [binary]                     
+    ids: [autohost]                         # ← en v2 usa 'ids' (no 'builds')
+    formats: [binary]                       # ← en v2 usa 'formats' (no 'format')
     name_template: "{{ .Binary }}-{{ .Os }}-{{ .Arch }}"
 
 checksum:
