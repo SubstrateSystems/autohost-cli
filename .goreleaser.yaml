@@ -1,5 +1,6 @@
 # .goreleaser.yaml (en la raíz)
 project_name: autohost
+version: 2
 
 release:
   draft: false
