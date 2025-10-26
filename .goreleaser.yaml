@@ -7,7 +7,7 @@ release:
 
 builds:
   - id: autohost
-    main: .                 # ← raíz: donde está tu main.go
+    main: .                 
     binary: autohost
     env:
       - CGO_ENABLED=0

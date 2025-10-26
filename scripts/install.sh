@@ -9,11 +9,13 @@ default_bin_dir() {
   if [ -w "/usr/local/bin" ]; then
     echo "/usr/local/bin"
   else
-    echo "🔒 Instalación global requiere permisos de administrador."
-    sudo mkdir -p /usr/local/bin
-    echo "/usr/local/bin"
+    # Mensaje SOLO a stderr, no a stdout
+    echo "🔒 Instalación global requiere permisos de administrador." >&2
+    # Devuelve una ruta de usuario (sin sudo ni mkdir aquí)
+    echo "$HOME/.local/bin"
   fi
 }
+
 
 
 PREFIX="${PREFIX:-/usr/local}"
@@ -97,22 +99,30 @@ fetch_release_bin_and_checksums() {
 install_binary() {
   chmod +x "${TMP_DIR}/${BIN_NAME}"
   echo "🚚 Instalando en ${BIN_DIR}..."
-  mkdir -p "${BIN_DIR}"
 
-  # Si no hay permisos, intentamos con sudo
+  # Crear BIN_DIR si no existe (intenta sin sudo, luego con sudo)
+  if ! mkdir -p "${BIN_DIR}" 2>/dev/null; then
+    echo "🔒 Se requieren permisos elevados para instalar en ${BIN_DIR}."
+    sudo mkdir -p "${BIN_DIR}"
+  fi
+
+  # Mover binario
   if ! mv "${TMP_DIR}/${BIN_NAME}" "${BIN_DIR}/${BIN_NAME}" 2>/dev/null; then
     echo "🔒 Se requieren permisos elevados para instalar en ${BIN_DIR}."
     sudo mv "${TMP_DIR}/${BIN_NAME}" "${BIN_DIR}/${BIN_NAME}"
   fi
 
-  # Asegura que el BIN_DIR esté en PATH del shell actual
-  if ! command -v "${BIN_DIR}/${BIN_NAME}" >/dev/null 2>&1; then
-    echo "ℹ️  Agrega '${BIN_DIR}' a tu PATH para usar '${BIN_NAME}' sin ruta completa."
-    echo "   Ejemplo: echo 'export PATH=\$PATH:${BIN_DIR}' >> ~/.bashrc && source ~/.bashrc"
+  # Sugerir PATH si hace falta
+  if ! command -v "${BIN_NAME}" >/dev/null 2>&1; then
+    if ! echo "$PATH" | grep -qE "(^|:)${BIN_DIR}(:|$)"; then
+      echo "ℹ️  Agrega '${BIN_DIR}' a tu PATH:"
+      echo "   echo 'export PATH=\$PATH:${BIN_DIR}' >> ~/.bashrc && source ~/.bashrc"
+    fi
   fi
 
   echo "✅ Instalación completa: $(command -v ${BIN_NAME} || echo "${BIN_DIR}/${BIN_NAME}")"
 }
+
 
 install_from_release() {
   local tag
