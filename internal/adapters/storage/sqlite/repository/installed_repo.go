@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"autohost-cli/internal/domain"
+	"autohost-cli/internal/ports"
 )
 
 type installedRepo struct {
 	db *sql.DB
 }
 
-func NewInstalledRepo(db *sql.DB) domain.InstalledRepo {
+func NewInstalledRepo(db *sql.DB) ports.InstalledRepository {
 	return &installedRepo{db: db}
 }
 
@@ -60,14 +61,14 @@ func (r *installedRepo) Add(ctx context.Context, app domain.InstalledApp) error 
 	return err
 }
 
-func (r *installedRepo) Remove(ctx context.Context, name string) error {
+func (r *installedRepo) Remove(ctx context.Context, name domain.AppName) error {
 	_, err := r.db.ExecContext(ctx, `
 		DELETE FROM installed_apps WHERE name = ?
 	`, name)
 	return err
 }
 
-func (r *installedRepo) IsInstalledApp(ctx context.Context, name string) (bool, error) {
+func (r *installedRepo) IsInstalled(ctx context.Context, name domain.AppName) (bool, error) {
 	var exists bool
 	err := r.db.QueryRowContext(ctx, `
 		SELECT EXISTS(

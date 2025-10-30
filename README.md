@@ -35,6 +35,12 @@ Install AutoHost CLI directly from GitHub with a single command:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mazapanuwu13/autohost-cli/main/scripts/install.sh | bash
 ```
+```bash
+export PATH="$PATH:$HOME/.local/bin"
+```
+```bash
+source ~/.bashrc 
+```
 
 This script automatically detects your operating system and architecture, downloads the latest binary version from GitHub Releases, and installs AutoHost CLI on your system.
 

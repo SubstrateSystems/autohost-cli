@@ -18,14 +18,14 @@ import (
 
 type AppService struct {
 	Docker    ports.Docker
-	Installed domain.InstalledRepo
+	Installed ports.InstalledRepository
 }
 
 func (s *AppService) InstallApp(ctx context.Context, appTemplate string) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	ensureUnique := func(name string) error {
-		exists, err := s.Installed.IsInstalledApp(ctx, name)
+		exists, err := s.Installed.IsInstalled(ctx, domain.AppName(name))
 		if err != nil {
 			return fmt.Errorf("no se pudo validar el nombre: %w", err)
 		}
@@ -76,7 +76,7 @@ func (s *AppService) StopApp(name string) error {
 	return nil
 }
 
-func (s *AppService) RemoveApp(ctx context.Context, name string) error {
+func (s *AppService) RemoveApp(ctx context.Context, name domain.AppName) error {
 	if err := s.Docker.RemoveApp(name); err != nil {
 
 		return fmt.Errorf("error al eliminar %s: %w", name, err)
@@ -93,24 +93,19 @@ func (s *AppService) GetAppStatus(name string) (string, error) {
 	return status, nil
 }
 
-// ??????????????????????/
-
 func (s AppService) ListInstalled(ctx context.Context) ([]domain.InstalledApp, error) {
 	return s.Installed.List(ctx)
 }
 
-//	func (s AppService) RemoveApp(ctx context.Context, name string) error {
-//		return s.Installed.Remove(ctx, name)
-//	}
-func (s AppService) IsAppInstalled(ctx context.Context, name string) (bool, error) {
-	return s.Installed.IsInstalledApp(ctx, name)
+func (s AppService) IsAppInstalled(ctx context.Context, name domain.AppName) (bool, error) {
+	return s.Installed.IsInstalled(ctx, name)
 }
 
 type CatalogService struct {
-	Catalog domain.CatalogRepo
+	Catalog ports.CatalogRepository
 }
 
-func (s CatalogService) List(ctx context.Context) ([]domain.CatalogItem, error) {
+func (s CatalogService) List(ctx context.Context) ([]domain.CatalogApp, error) {
 	return s.Catalog.ListApps(ctx)
 }
 
@@ -183,8 +178,6 @@ func askAppConfig(reader *bufio.Reader, appTemplate string, ensureUnique func(st
 		break
 	}
 
-	// template := utils.AskInput(reader, "📦 Tipo de template (bookstack, nextcloud, redis, mysql, postgres)", defaultTemplate)
-
 	if appTemplate == "mysql" {
 		mysqlCfg := askMySQLConfig(reader, name)
 		return domain.AppConfig{
@@ -207,6 +200,7 @@ func askAppConfig(reader *bufio.Reader, appTemplate string, ensureUnique func(st
 
 	port := utils.AskAppPort(reader, "🔌 Puerto del host a utilizar", domain.TemplatePorts[appTemplate])
 	var mysqlCfg *domain.MySQLConfig
+
 	if appTemplate == "nextcloud" || appTemplate == "bookstack" {
 		mysqlCfg = askMySQLConfig(reader, name)
 	}

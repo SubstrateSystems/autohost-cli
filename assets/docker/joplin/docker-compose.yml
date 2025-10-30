@@ -1,0 +1,45 @@
+services:
+  $postgres-database:
+    image: postgres:16-alpine
+    container_name: $postgres-database
+    restart: always
+    ports:
+      - "$postgres-port:5432"
+    environment:
+      POSTGRES_DB: $postgres-database
+      POSTGRES_USER: $postgres-user
+      POSTGRES_PASSWORD: $postgres-password
+    volumes:
+      - $postgres-database:/var/lib/postgresql/data
+    networks:
+      - autohost_net
+
+  $service-name:
+    image: joplin/server:2
+    container_name: $service-name
+    restart: always
+    ports:
+      - "$port:22300"
+    environment:
+      # --- Básicos de Joplin Server ---
+      APP_BASE_URL: http://localhost:$port     # ej: https://joplin.tu-dominio.com
+      APP_PORT: "22300"
+      DB_CLIENT: pg
+
+      # --- Conexión a Postgres ---
+      POSTGRES_DATABASE: $postgres-database
+      POSTGRES_USER: $postgres-user
+      POSTGRES_PASSWORD: $postgres-password
+      POSTGRES_PORT: "5432"
+      POSTGRES_HOST: $postgres-database
+    depends_on:
+      - $postgres-database
+    networks:
+      - autohost_net
+
+volumes:
+  $postgres-database:
+
+networks:
+  autohost_net:
+    external: true

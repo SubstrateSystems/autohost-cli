@@ -1,9 +1,23 @@
 package domain
 
 import (
-	"context"
+	"fmt"
+	"regexp"
 	"time"
 )
+
+type AppName string
+
+func (n AppName) Validate() error {
+	if n == "" {
+		return fmt.Errorf("app name cannot be empty")
+	}
+
+	if !regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(string(n)) {
+		return fmt.Errorf("invalid app name format")
+	}
+	return nil
+}
 
 type CatalogApp struct {
 	Name        string
@@ -41,23 +55,4 @@ type PostgresConfig struct {
 	Password string
 	Database string
 	Port     string
-}
-
-// ????????????????
-type InstalledRepo interface {
-	List(ctx context.Context) ([]InstalledApp, error)
-	Remove(ctx context.Context, name string) error
-	IsInstalledApp(ctx context.Context, name string) (bool, error)
-	Add(ctx context.Context, app InstalledApp) error
-}
-
-type CatalogItem struct {
-	Name        string
-	Description string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}
-
-type CatalogRepo interface {
-	ListApps(ctx context.Context) ([]CatalogItem, error)
 }

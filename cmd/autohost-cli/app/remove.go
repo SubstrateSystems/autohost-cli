@@ -3,6 +3,7 @@ package app
 import (
 	"autohost-cli/internal/adapters/docker"
 	"autohost-cli/internal/app"
+	"autohost-cli/internal/domain"
 	"autohost-cli/internal/platform/di"
 	"autohost-cli/utils"
 	"context"
@@ -26,8 +27,7 @@ func appRemoveCmd(deps di.Deps) *cobra.Command {
 
 			appName := args[0]
 			if utils.Confirm(fmt.Sprintf("¿Estás seguro que quieres eliminar %s? [y/N]: ", appName)) {
-				err := svc.RemoveApp(ctx, appName)
-				// deps.Repos.Installed.Remove(ctx, appName)
+				err := svc.RemoveApp(ctx, domain.AppName(appName))
 
 				if err != nil {
 					fmt.Printf("❌ No se pudo eliminar %s: %v\n", appName, err)

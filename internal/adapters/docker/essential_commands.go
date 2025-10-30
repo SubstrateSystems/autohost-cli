@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"autohost-cli/internal/domain"
 	"autohost-cli/utils"
 	"fmt"
 	"os"
@@ -29,10 +30,19 @@ func StartApp(app string) error {
 	return utils.ExecWithDir(filepath.Dir(ymlPath), "docker", "compose", "-f", ymlPath, "up", "-d")
 }
 
-func RemoveApp(app string) error {
-	ymlPath := filepath.Join(utils.GetSubdir("apps"), app, "docker-compose.yml")
-	utils.ExecWithDir(filepath.Dir(ymlPath), "docker", "compose", "-f", ymlPath, "down")
-	return utils.Exec("rm", "-rf", filepath.Join(utils.GetSubdir("apps"), app))
+func RemoveApp(app domain.AppName) error {
+	if err := app.Validate(); err != nil {
+		return err
+	}
+
+	appDir := filepath.Join(utils.GetSubdir("apps"), string(app))
+	ymlPath := filepath.Join(appDir, "docker-compose.yml")
+
+	if err := utils.ExecWithDir(appDir, "docker", "compose", "-f", ymlPath, "down"); err != nil {
+		return fmt.Errorf("failed to stop app: %w", err)
+	}
+
+	return utils.Exec("rm", "-rf", appDir)
 }
 
 func GetAppStatus(app string) (string, error) {
