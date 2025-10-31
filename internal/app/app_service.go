@@ -19,6 +19,7 @@ import (
 type AppService struct {
 	Docker    ports.Docker
 	Installed ports.InstalledRepository
+	Catalog   ports.CatalogRepository
 }
 
 func (s *AppService) InstallApp(ctx context.Context, appTemplate string) error {
@@ -34,6 +35,8 @@ func (s *AppService) InstallApp(ctx context.Context, appTemplate string) error {
 		}
 		return nil
 	}
+
+	s.Catalog.FindByName(ctx, domain.AppName(appTemplate))
 
 	cfg := askAppConfig(reader, appTemplate, ensureUnique)
 

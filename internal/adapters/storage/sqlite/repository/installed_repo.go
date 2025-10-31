@@ -7,13 +7,15 @@ import (
 
 	"autohost-cli/internal/domain"
 	"autohost-cli/internal/ports"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type installedRepo struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewInstalledRepo(db *sql.DB) ports.InstalledRepository {
+func NewInstalledRepo(db *sqlx.DB) ports.InstalledRepository {
 	return &installedRepo{db: db}
 }
 
@@ -33,7 +35,7 @@ func (r *installedRepo) List(ctx context.Context) ([]domain.InstalledApp, error)
 		var (
 			id   int64
 			name string
-			ts   sql.NullInt64 // <-- unixepoch en segundos
+			ts   sql.NullInt64
 		)
 		if err := rows.Scan(&id, &name, &ts); err != nil {
 			return nil, err

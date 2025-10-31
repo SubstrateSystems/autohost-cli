@@ -1,15 +1,20 @@
 package repository
 
 import (
+	"autohost-cli/internal/adapters/storage/sqlite/mappers"
+	"autohost-cli/internal/adapters/storage/sqlite/models"
 	"autohost-cli/internal/domain"
 	"autohost-cli/internal/ports"
 	"context"
 	"database/sql"
+	"errors"
+
+	"github.com/jmoiron/sqlx"
 )
 
-type catalogRepo struct{ db *sql.DB }
+type catalogRepo struct{ db *sqlx.DB }
 
-func NewCatalogRepo(db *sql.DB) ports.CatalogRepository { return &catalogRepo{db} }
+func NewCatalogRepo(db *sqlx.DB) ports.CatalogRepository { return &catalogRepo{db} }
 
 func (r *catalogRepo) ListApps(ctx context.Context) ([]domain.CatalogApp, error) {
 	rows, err := r.db.QueryContext(ctx, `
@@ -31,4 +36,17 @@ func (r *catalogRepo) ListApps(ctx context.Context) ([]domain.CatalogApp, error)
 	return out, rows.Err()
 }
 
-func (r *catalogRepo) FindByName(ctx context.Context, name domain.AppName) (domain.CatalogApp, error)
+func (r *catalogRepo) FindByName(ctx context.Context, name domain.AppName) (domain.CatalogApp, error) {
+	var row models.CatalogAppRow
+	err := r.db.GetContext(ctx, &row, `
+        SELECT name, description, default_port, default_port_db, client_db, created_at, updated_at
+        FROM catalog_apps
+        WHERE name = ?`, name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.CatalogApp{}, nil // o (CatalogApp{}, ErrNotFound)
+		}
+		return domain.CatalogApp{}, err
+	}
+	return mappers.ToDomainCatalogApp(row), nil
+}

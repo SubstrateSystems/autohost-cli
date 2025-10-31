@@ -19,6 +19,7 @@ func InstallCmd(deps di.Deps) *cobra.Command {
 	var svc = &app.AppService{
 		Docker:    docker.New(),
 		Installed: deps.Repos.Installed,
+		Catalog:   deps.Repos.Catalog,
 	}
 
 	cmd := &cobra.Command{

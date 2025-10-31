@@ -20,10 +20,13 @@ func (n AppName) Validate() error {
 }
 
 type CatalogApp struct {
-	Name        string
-	Description string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	Name          string
+	Description   string
+	DefaultPort   string
+	DefaultPortDB string
+	ClientDB      string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type InstalledApp struct {
