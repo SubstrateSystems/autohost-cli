@@ -44,7 +44,7 @@ func (r *catalogRepo) FindByName(ctx context.Context, name domain.AppName) (doma
         WHERE name = ?`, name)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return domain.CatalogApp{}, nil // o (CatalogApp{}, ErrNotFound)
+			return domain.CatalogApp{}, nil
 		}
 		return domain.CatalogApp{}, err
 	}

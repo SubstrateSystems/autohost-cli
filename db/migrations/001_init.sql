@@ -1,13 +1,14 @@
 PRAGMA foreign_keys=ON;
 
 CREATE TABLE IF NOT EXISTS catalog_apps (
-  name TEXT PRIMARY KEY,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
   description TEXT NOT NULL,
-  default_port TEXT NOT NULL UNIQUE,
-  default_port_db TEXT NOT NULL UNIQUE,
+  default_port TEXT NOT NULL,
+  default_port_db TEXT NOT NULL,
   client_db TEXT,
-  created_at INTEGER DEFAULT (unixepoch()),
-  updated_at INTEGER DEFAULT (unixepoch())
+  created_at DEFAULT (datetime('now')),
+  updated_at DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS installed_apps (
@@ -17,7 +18,7 @@ CREATE TABLE IF NOT EXISTS installed_apps (
   port_db TEXT,
   http_url TEXT,
   catalog_app_id TEXT NOT NULL REFERENCES catalog_apps(name) ON DELETE RESTRICT,
-  created_at INTEGER DEFAULT (unixepoch()),
-  updated_at INTEGER DEFAULT (unixepoch())
+  created_at DEFAULT (datetime('now')),
+  updated_at DEFAULT (datetime('now'))
 );
 

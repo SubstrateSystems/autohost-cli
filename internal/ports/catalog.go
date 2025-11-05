@@ -12,7 +12,7 @@ type CatalogRepository interface {
 
 type InstalledRepository interface {
 	List(ctx context.Context) ([]domain.InstalledApp, error)
-	Add(ctx context.Context, app domain.InstalledApp) error
+	Install(ctx context.Context, app domain.InstalledApp) error
 	Remove(ctx context.Context, name domain.AppName) error
 	IsInstalled(ctx context.Context, name domain.AppName) (bool, error)
 }

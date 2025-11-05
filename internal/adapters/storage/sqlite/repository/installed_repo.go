@@ -55,11 +55,11 @@ func (r *installedRepo) List(ctx context.Context) ([]domain.InstalledApp, error)
 	return out, rows.Err()
 }
 
-func (r *installedRepo) Add(ctx context.Context, app domain.InstalledApp) error {
+func (r *installedRepo) Install(ctx context.Context, app domain.InstalledApp) error {
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO installed_apps (name, catalog_app_id) 
-		VALUES (?, ?)
-	`, app.Name, app.CatalogAppID)
+		INSERT INTO installed_apps (name, port, port_db, catalog_app_id) 
+		VALUES (?, ?, ?, ?)
+	`, app.Name, app.Port, app.PortDB, app.CatalogAppID)
 	return err
 }
 
