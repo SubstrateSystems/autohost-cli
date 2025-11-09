@@ -4,7 +4,6 @@ import (
 	"autohost-cli/assets"
 	"autohost-cli/internal/domain"
 
-	// "autohost-cli/internal/platform/di"
 	"autohost-cli/internal/ports"
 	"autohost-cli/utils"
 	"path/filepath"
@@ -42,8 +41,6 @@ func (s *AppService) InstallApp(ctx context.Context, appTemplate string) error {
 	}
 
 	cfg := askAppConfig(reader, app, ensureUnique)
-
-	fmt.Printf("%+v\n", cfg.AppSettings)
 
 	if err := s.Installed.Install(ctx, cfg.AppSettings); err != nil {
 		return fmt.Errorf("error al registrar la aplicación instalada: %w", err)
@@ -170,12 +167,12 @@ func setValues(settings domain.AppConfig) map[string]string {
 }
 
 func askAppConfig(reader *bufio.Reader, appTemplate domain.CatalogApp, ensureUnique func(string) error) domain.AppConfig {
-	defaultAppName := "appdemo"
-	appConfig := domain.AppConfig{AppSettings: domain.InstalledApp{Template: string(appTemplate.Name)}}
+	nameApp := "appdemo"
+	appConfig := domain.AppConfig{}
 
 	for {
-		appTemplate.Name = utils.AskInput(reader, "📝 Nombre de la aplicación", defaultAppName)
-		if err := ensureUnique(appTemplate.Name); err != nil {
+		nameApp = utils.AskInput(reader, "📝 Nombre de la aplicación", nameApp)
+		if err := ensureUnique(nameApp); err != nil {
 			fmt.Printf("⚠️ %v\n", err)
 			continue
 		}
@@ -184,18 +181,17 @@ func askAppConfig(reader *bufio.Reader, appTemplate domain.CatalogApp, ensureUni
 	port := utils.AskAppPort(reader, "🔌 Puerto del host a utilizar", appTemplate.DefaultPort)
 
 	if appTemplate.ClientDB == "mysql" {
-		mysqlCfg := askMySQLConfig(reader, appTemplate.Name)
-
+		mysqlCfg := askMySQLConfig(reader, nameApp)
 		appConfig = domain.AppConfig{
-			AppSettings: domain.InstalledApp{Name: appTemplate.Name, Port: port, PortDB: mysqlCfg.Port, CatalogAppID: int64(appTemplate.ID)},
+			AppSettings: domain.InstalledApp{Name: nameApp, Port: port, PortDB: mysqlCfg.Port, Template: appTemplate.Name, CatalogAppID: int64(appTemplate.ID)},
 			MySQL:       mysqlCfg,
 		}
 	}
 
 	if appTemplate.Name == "postgres" {
-		postgresCfg := askMyPostgresConfig(reader, appTemplate.Name)
+		postgresCfg := askMyPostgresConfig(reader, nameApp)
 		appConfig = domain.AppConfig{
-			AppSettings: domain.InstalledApp{Name: appTemplate.Name, Port: port, PortDB: postgresCfg.Port},
+			AppSettings: domain.InstalledApp{Name: nameApp, Port: port, PortDB: postgresCfg.Port, Template: appTemplate.Name, CatalogAppID: int64(appTemplate.ID)},
 			Postgres:    postgresCfg,
 		}
 	}

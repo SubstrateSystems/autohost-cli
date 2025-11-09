@@ -39,7 +39,7 @@ func (r *catalogRepo) ListApps(ctx context.Context) ([]domain.CatalogApp, error)
 func (r *catalogRepo) FindByName(ctx context.Context, name domain.AppName) (domain.CatalogApp, error) {
 	var row models.CatalogAppRow
 	err := r.db.GetContext(ctx, &row, `
-        SELECT name, description, default_port, default_port_db, client_db, created_at, updated_at
+        SELECT id, name, description, default_port, default_port_db, client_db, created_at, updated_at
         FROM catalog_apps
         WHERE name = ?`, name)
 	if err != nil {

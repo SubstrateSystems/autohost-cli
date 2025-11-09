@@ -27,6 +27,7 @@ func ToDomainCatalogApp(r models.CatalogAppRow) domain.CatalogApp {
 	}
 
 	return domain.CatalogApp{
+		ID:            r.ID,
 		Name:          r.Name,
 		Description:   r.Description,
 		DefaultPort:   r.DefaultPort,

@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS installed_apps (
   port TEXT NOT NULL UNIQUE,
   port_db TEXT,
   http_url TEXT,
-  catalog_app_id TEXT NOT NULL REFERENCES catalog_apps(name) ON DELETE RESTRICT,
+  catalog_app_id INTEGER NOT NULL REFERENCES catalog_apps(id) ON DELETE RESTRICT,
   created_at DEFAULT (datetime('now')),
   updated_at DEFAULT (datetime('now'))
 );
