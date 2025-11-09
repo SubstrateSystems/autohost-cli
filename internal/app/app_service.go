@@ -4,7 +4,6 @@ import (
 	"autohost-cli/assets"
 	"autohost-cli/internal/domain"
 
-	// "autohost-cli/internal/platform/di"
 	"autohost-cli/internal/ports"
 	"autohost-cli/utils"
 	"path/filepath"
@@ -18,14 +17,15 @@ import (
 
 type AppService struct {
 	Docker    ports.Docker
-	Installed domain.InstalledRepo
+	Installed ports.InstalledRepository
+	Catalog   ports.CatalogRepository
 }
 
 func (s *AppService) InstallApp(ctx context.Context, appTemplate string) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	ensureUnique := func(name string) error {
-		exists, err := s.Installed.IsInstalledApp(ctx, name)
+		exists, err := s.Installed.IsInstalled(ctx, domain.AppName(name))
 		if err != nil {
 			return fmt.Errorf("no se pudo validar el nombre: %w", err)
 		}
@@ -35,28 +35,28 @@ func (s *AppService) InstallApp(ctx context.Context, appTemplate string) error {
 		return nil
 	}
 
-	cfg := askAppConfig(reader, appTemplate, ensureUnique)
-
-	if err := install(cfg); err != nil {
-		return fmt.Errorf("error al instalar %s: %w", cfg.Name, err)
+	app, err := s.Catalog.FindByName(ctx, domain.AppName(appTemplate))
+	if err != nil {
+		return fmt.Errorf("error al buscar la aplicación en el catálogo: %w", err)
 	}
 
-	startApp := utils.AskInput(reader, fmt.Sprintf("¿Deseas iniciar %s ahora? [Y/N]: ", cfg.Name), "Y")
+	cfg := askAppConfig(reader, app, ensureUnique)
 
-	appModel := domain.InstalledApp{
-		Name:         cfg.Name,
-		CatalogAppID: cfg.Template,
-	}
-
-	if err := s.Installed.Add(ctx, appModel); err != nil {
+	if err := s.Installed.Install(ctx, cfg.AppSettings); err != nil {
 		return fmt.Errorf("error al registrar la aplicación instalada: %w", err)
 	}
 
+	if err := install(cfg); err != nil {
+		return fmt.Errorf("error al instalar %s: %w", cfg.AppSettings.Name, err)
+	}
+
+	startApp := utils.AskInput(reader, fmt.Sprintf("¿Deseas iniciar %s ahora? [Y/N]: ", cfg.AppSettings.Name), "Y")
+
 	if strings.EqualFold(startApp, "Y") {
-		if err := s.Docker.StartApp(cfg.Name); err != nil {
-			return fmt.Errorf("error al iniciar %s: %w", cfg.Name, err)
+		if err := s.Docker.StartApp(cfg.AppSettings.Name); err != nil {
+			return fmt.Errorf("error al iniciar %s: %w", cfg.AppSettings.Name, err)
 		}
-		fmt.Printf("🚀 La aplicación %s ha sido iniciada en http://localhost:%s\n", cfg.Name, cfg.Port)
+		fmt.Printf("🚀 La aplicación %s ha sido iniciada en http://localhost:%s\n", cfg.AppSettings.Name, cfg.AppSettings.Port)
 	}
 
 	return nil
@@ -76,7 +76,7 @@ func (s *AppService) StopApp(name string) error {
 	return nil
 }
 
-func (s *AppService) RemoveApp(ctx context.Context, name string) error {
+func (s *AppService) RemoveApp(ctx context.Context, name domain.AppName) error {
 	if err := s.Docker.RemoveApp(name); err != nil {
 
 		return fmt.Errorf("error al eliminar %s: %w", name, err)
@@ -93,24 +93,19 @@ func (s *AppService) GetAppStatus(name string) (string, error) {
 	return status, nil
 }
 
-// ??????????????????????/
-
 func (s AppService) ListInstalled(ctx context.Context) ([]domain.InstalledApp, error) {
 	return s.Installed.List(ctx)
 }
 
-//	func (s AppService) RemoveApp(ctx context.Context, name string) error {
-//		return s.Installed.Remove(ctx, name)
-//	}
-func (s AppService) IsAppInstalled(ctx context.Context, name string) (bool, error) {
-	return s.Installed.IsInstalledApp(ctx, name)
+func (s AppService) IsAppInstalled(ctx context.Context, name domain.AppName) (bool, error) {
+	return s.Installed.IsInstalled(ctx, name)
 }
 
 type CatalogService struct {
-	Catalog domain.CatalogRepo
+	Catalog ports.CatalogRepository
 }
 
-func (s CatalogService) List(ctx context.Context) ([]domain.CatalogItem, error) {
+func (s CatalogService) List(ctx context.Context) ([]domain.CatalogApp, error) {
 	return s.Catalog.ListApps(ctx)
 }
 
@@ -118,18 +113,18 @@ func (s CatalogService) List(ctx context.Context) ([]domain.CatalogItem, error) 
 
 func install(app domain.AppConfig) error {
 	fmt.Printf("%+v\n", app)
-	appDir := filepath.Join(utils.GetSubdir("apps"), app.Name)
+	appDir := filepath.Join(utils.GetSubdir("apps"), app.AppSettings.Name)
 	composePath := filepath.Join(appDir, "docker-compose.yml")
 
 	if err := os.MkdirAll(appDir, 0o755); err != nil {
 		return fmt.Errorf("error creando directorio de destino: %w", err)
 	}
 
-	data, err := assets.ReadCompose(app.Template)
+	data, err := assets.ReadCompose(app.AppSettings.Template)
 	if err != nil {
-		return fmt.Errorf("no se encontró plantilla embebida para %s: %w", app.Template, err)
+		return fmt.Errorf("no se encontró plantilla embebida para %s: %w", app.AppSettings.Template, err)
 	}
-	fmt.Println("📦 Usando plantilla embebida para:", app.Template)
+	fmt.Println("📦 Usando plantilla embebida para:", app.AppSettings.Template)
 
 	values := setValues(app)
 
@@ -144,79 +139,64 @@ func install(app domain.AppConfig) error {
 	return nil
 }
 
-func setValues(app domain.AppConfig) map[string]string {
+func setValues(settings domain.AppConfig) map[string]string {
 	values := map[string]string{}
 
-	values["$service-name"] = app.Name // AppName
-	values["$port"] = app.Port         // AppPort
-	if app.MySQL != nil {
-		values["$mysql-user"] = app.MySQL.User                  // UserName MySQL
-		values["$mysql-password"] = app.MySQL.Password          // PasswordUser MySQL
-		values["$mysql-root-password"] = app.MySQL.RootPassword // RootPassword MySQL
-		values["$mysql-database"] = app.MySQL.Database + "-db"  // DatabaseName MySQL
-		values["$mysql-port"] = app.MySQL.Port                  // Port MySQL
+	values["$service-name"] = settings.AppSettings.Name // AppName
+	values["$port"] = settings.AppSettings.Port         // AppPort
+	if settings.MySQL != nil {
+		values["$mysql-user"] = settings.MySQL.User                  // UserName MySQL
+		values["$mysql-password"] = settings.MySQL.Password          // PasswordUser MySQL
+		values["$mysql-root-password"] = settings.MySQL.RootPassword // RootPassword MySQL
+		values["$mysql-database"] = settings.MySQL.Database + "-db"  // DatabaseName MySQL
+		values["$mysql-port"] = settings.MySQL.Port                  // Port MySQL
 	}
 
-	if app.Postgres != nil {
-		values["$postgres-user"] = app.Postgres.User         // UserName Postgres
-		values["$postgres-password"] = app.Postgres.Password // PasswordUser Postgres
-		values["$postgres-database"] = app.Postgres.Database // DatabaseName Postgres
-		values["$postgres-port"] = app.Postgres.Port         // Port Postgres
+	if settings.Postgres != nil {
+		values["$postgres-user"] = settings.Postgres.User         // UserName Postgres
+		values["$postgres-password"] = settings.Postgres.Password // PasswordUser Postgres
+		values["$postgres-database"] = settings.Postgres.Database // DatabaseName Postgres
+		values["$postgres-port"] = settings.Postgres.Port         // Port Postgres
 	}
 
-	if app.Template == "bookstack" {
+	if settings.AppSettings.Name == "bookstack" {
 		values["$app-key"] = utils.GenerateRandomString(64) // AppKey BookStack
 	}
 
 	return values
 }
 
-func askAppConfig(reader *bufio.Reader, appTemplate string, ensureUnique func(string) error) domain.AppConfig {
-	defaultAppName := "appdemo"
-	var name string
+func askAppConfig(reader *bufio.Reader, appTemplate domain.CatalogApp, ensureUnique func(string) error) domain.AppConfig {
+	nameApp := "appdemo"
+	appConfig := domain.AppConfig{}
+
 	for {
-		name = utils.AskInput(reader, "📝 Nombre de la aplicación", defaultAppName)
-		if err := ensureUnique(name); err != nil {
+		nameApp = utils.AskInput(reader, "📝 Nombre de la aplicación", nameApp)
+		if err := ensureUnique(nameApp); err != nil {
 			fmt.Printf("⚠️ %v\n", err)
 			continue
 		}
 		break
 	}
+	port := utils.AskAppPort(reader, "🔌 Puerto del host a utilizar", appTemplate.DefaultPort)
 
-	// template := utils.AskInput(reader, "📦 Tipo de template (bookstack, nextcloud, redis, mysql, postgres)", defaultTemplate)
-
-	if appTemplate == "mysql" {
-		mysqlCfg := askMySQLConfig(reader, name)
-		return domain.AppConfig{
-			Name:     name,
-			Template: appTemplate,
-			Port:     mysqlCfg.Port,
-			MySQL:    mysqlCfg,
+	if appTemplate.ClientDB == "mysql" {
+		mysqlCfg := askMySQLConfig(reader, nameApp)
+		appConfig = domain.AppConfig{
+			AppSettings: domain.InstalledApp{Name: nameApp, Port: port, PortDB: mysqlCfg.Port, Template: appTemplate.Name, CatalogAppID: int64(appTemplate.ID)},
+			MySQL:       mysqlCfg,
 		}
 	}
 
-	if appTemplate == "postgres" {
-		postgresCfg := askMyPostgresConfig(reader, name)
-		return domain.AppConfig{
-			Name:     name,
-			Template: appTemplate,
-			Port:     postgresCfg.Port,
-			Postgres: postgresCfg,
+	if appTemplate.Name == "postgres" {
+		postgresCfg := askMyPostgresConfig(reader, nameApp)
+		appConfig = domain.AppConfig{
+			AppSettings: domain.InstalledApp{Name: nameApp, Port: port, PortDB: postgresCfg.Port, Template: appTemplate.Name, CatalogAppID: int64(appTemplate.ID)},
+			Postgres:    postgresCfg,
 		}
 	}
 
-	port := utils.AskAppPort(reader, "🔌 Puerto del host a utilizar", domain.TemplatePorts[appTemplate])
-	var mysqlCfg *domain.MySQLConfig
-	if appTemplate == "nextcloud" || appTemplate == "bookstack" {
-		mysqlCfg = askMySQLConfig(reader, name)
-	}
-
-	return domain.AppConfig{
-		Name:     name,
-		Template: appTemplate,
-		Port:     port,
-		MySQL:    mysqlCfg,
-	}
+	return appConfig
 }
 
 func askMySQLConfig(reader *bufio.Reader, name string) *domain.MySQLConfig {

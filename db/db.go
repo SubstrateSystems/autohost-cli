@@ -2,18 +2,18 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 
+	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
 )
 
-type DB struct{ *sql.DB }
+type DB struct{ *sqlx.DB }
 
 func Open(path string) (*DB, error) {
 	// WAL + busy_timeout + FK
 	dsn := fmt.Sprintf("file:%s?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)", path)
-	raw, err := sql.Open("sqlite", dsn)
+	raw, err := sqlx.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err
 	}

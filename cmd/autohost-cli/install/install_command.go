@@ -19,6 +19,7 @@ func InstallCmd(deps di.Deps) *cobra.Command {
 	var svc = &app.AppService{
 		Docker:    docker.New(),
 		Installed: deps.Repos.Installed,
+		Catalog:   deps.Repos.Catalog,
 	}
 
 	cmd := &cobra.Command{
@@ -66,7 +67,7 @@ func InstallCmd(deps di.Deps) *cobra.Command {
 	return cmd
 }
 
-func printCatalogTable(apps []domain.CatalogItem) {
+func printCatalogTable(apps []domain.CatalogApp) {
 	if len(apps) == 0 {
 		fmt.Println("No apps available in the catalog.")
 		return

@@ -1,0 +1,23 @@
+services:
+  $service-name:
+    image: excalidraw/excalidraw:latest
+    container_name: $service-name
+    ports:
+      - "$port:80"
+    environment:
+      - VITE_APP_BACKEND_V2_GET_URL=http://$service-name-room:5000
+      - VITE_APP_BACKEND_V2_POST_URL=http://$service-name-room:5000
+    depends_on:
+      - $service-name-room
+    networks:
+      - autohost_net
+    restart: unless-stopped
+
+  $service-name-room:
+    image: excalidraw/excalidraw-room:latest
+    container_name: $service-name-room
+    ports:
+      - "$port-room:5000"
+    networks:
+      - autohost_net
+    restart: unless-stopped

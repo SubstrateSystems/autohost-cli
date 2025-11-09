@@ -6,13 +6,16 @@ import (
 	"time"
 
 	"autohost-cli/internal/domain"
+	"autohost-cli/internal/ports"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type installedRepo struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewInstalledRepo(db *sql.DB) domain.InstalledRepo {
+func NewInstalledRepo(db *sqlx.DB) ports.InstalledRepository {
 	return &installedRepo{db: db}
 }
 
@@ -32,7 +35,7 @@ func (r *installedRepo) List(ctx context.Context) ([]domain.InstalledApp, error)
 		var (
 			id   int64
 			name string
-			ts   sql.NullInt64 // <-- unixepoch en segundos
+			ts   sql.NullInt64
 		)
 		if err := rows.Scan(&id, &name, &ts); err != nil {
 			return nil, err
@@ -52,22 +55,22 @@ func (r *installedRepo) List(ctx context.Context) ([]domain.InstalledApp, error)
 	return out, rows.Err()
 }
 
-func (r *installedRepo) Add(ctx context.Context, app domain.InstalledApp) error {
+func (r *installedRepo) Install(ctx context.Context, app domain.InstalledApp) error {
 	_, err := r.db.ExecContext(ctx, `
-		INSERT INTO installed_apps (name, catalog_app_id) 
-		VALUES (?, ?)
-	`, app.Name, app.CatalogAppID)
+		INSERT INTO installed_apps (name, port, port_db, catalog_app_id) 
+		VALUES (?, ?, ?, ?)
+	`, app.Name, app.Port, app.PortDB, app.CatalogAppID)
 	return err
 }
 
-func (r *installedRepo) Remove(ctx context.Context, name string) error {
+func (r *installedRepo) Remove(ctx context.Context, name domain.AppName) error {
 	_, err := r.db.ExecContext(ctx, `
 		DELETE FROM installed_apps WHERE name = ?
 	`, name)
 	return err
 }
 
-func (r *installedRepo) IsInstalledApp(ctx context.Context, name string) (bool, error) {
+func (r *installedRepo) IsInstalled(ctx context.Context, name domain.AppName) (bool, error) {
 	var exists bool
 	err := r.db.QueryRowContext(ctx, `
 		SELECT EXISTS(
