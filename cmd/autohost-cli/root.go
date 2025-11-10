@@ -10,6 +10,7 @@ import (
 	"autohost-cli/cmd/autohost-cli/setup"
 	"autohost-cli/db"
 	"autohost-cli/internal/platform/di"
+	"autohost-cli/internal/plugins/agent"
 	"autohost-cli/utils"
 	"fmt"
 	"os"
@@ -67,6 +68,7 @@ func init() {
 	rootCmd.AddCommand(install.InstallCmd(deps))
 	rootCmd.AddCommand(setup.SetupCmd())
 	rootCmd.AddCommand(expose.ExposeCmd())
+	rootCmd.AddCommand(agent.AgentCmd())
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
@@ -78,6 +80,7 @@ func ensureAutohostDirs() error {
 		"logs",
 		"state",
 		"backups",
+		"config",
 	}
 
 	for _, sub := range subdirs {
