@@ -34,6 +34,7 @@ func NewLinkCmd() *cobra.Command {
 			}
 
 			req := types.NodeRquest{
+				ErollToken:   strings.TrimSpace(token),
 				HostName:     strings.TrimSpace(nodeData.HostName),
 				IPLocal:      strings.TrimSpace(nodeData.IPLocal),
 				OS:           strings.TrimSpace(nodeData.OS),
@@ -46,7 +47,7 @@ func NewLinkCmd() *cobra.Command {
 
 			var resp types.NodeResponse
 
-			status, err := client.PostJSON(ctx, "/v1/nodes/register", req, &resp)
+			status, err := client.PostJSON(ctx, "/v1/enrollments/enroll", req, &resp)
 			if err != nil {
 				log.Fatalf("Error en la petición: %v", err)
 			}
@@ -54,15 +55,13 @@ func NewLinkCmd() *cobra.Command {
 			fmt.Println("Código HTTP:", status)
 			fmt.Println("Respuesta del servidor:", resp)
 			cfg := config.AgentConfig{
-				ID:        resp.ID,
-				TokenUser: token,
+				ApiToken: resp.ApiToken,
 			}
 			err = config.Save(cfg)
 			if err != nil {
 				log.Fatalf("Error guardando configuración: %v", err)
 			}
 
-			// cmd.Printf("  config: %s\n", config.GetConfigPath())
 			return nil
 		},
 	}

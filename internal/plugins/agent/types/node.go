@@ -9,6 +9,7 @@ type NodeData struct {
 }
 
 type NodeRquest struct {
+	ErollToken   string `json:"enroll_token"`
 	HostName     string `json:"hostname"`
 	IPLocal      string `json:"ip_local"`
 	OS           string `json:"os"`
@@ -17,5 +18,5 @@ type NodeRquest struct {
 }
 
 type NodeResponse struct {
-	ID string `json:"id"`
+	ApiToken string `json:"api_token"`
 }

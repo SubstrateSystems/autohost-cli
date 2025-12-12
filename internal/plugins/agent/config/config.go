@@ -7,8 +7,8 @@ import (
 )
 
 type AgentConfig struct {
-	ID        string `json:"id"`
-	TokenUser string `json:"token"`
+	// ID        string `json:"id"`
+	ApiToken string
 }
 
 func Save(cfg AgentConfig) error {

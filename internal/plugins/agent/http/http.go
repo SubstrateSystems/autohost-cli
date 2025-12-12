@@ -12,7 +12,7 @@ import (
 type HTTPClient struct {
 	base string
 	hc   *http.Client
-	auth string // Authorization header value
+	auth string
 }
 
 func NewUserClient(apiBase, userSessionToken string) *HTTPClient {
@@ -40,9 +40,9 @@ func (c *HTTPClient) PostJSON(ctx context.Context, path string, in, out any) (in
 	b, _ := json.Marshal(in)
 	req, _ := http.NewRequestWithContext(ctx, "POST", c.base+path, bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")
-	if c.auth != "" {
-		req.Header.Set("Authorization", c.auth)
-	}
+	// if c.auth != "" {
+	// 	req.Header.Set("Authorization", c.auth)
+	// }
 	resp, err := c.hc.Do(req)
 	if err != nil {
 		return 0, err
