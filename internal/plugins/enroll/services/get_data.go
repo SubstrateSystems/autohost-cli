@@ -1,7 +1,7 @@
 package services
 
 import (
-	"autohost-cli/internal/plugins/agent/types"
+	"autohost-cli/internal/plugins/enroll/types"
 	"fmt"
 	"net"
 	"os/exec"

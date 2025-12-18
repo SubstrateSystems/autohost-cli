@@ -1,10 +1,10 @@
-package agent
+package enroll
 
 import (
-	"autohost-cli/internal/plugins/agent/config"
-	"autohost-cli/internal/plugins/agent/http"
-	"autohost-cli/internal/plugins/agent/services"
-	"autohost-cli/internal/plugins/agent/types"
+	"autohost-cli/internal/plugins/enroll/config"
+	"autohost-cli/internal/plugins/enroll/http"
+	"autohost-cli/internal/plugins/enroll/services"
+	"autohost-cli/internal/plugins/enroll/types"
 	"context"
 	"errors"
 	"fmt"
@@ -53,14 +53,25 @@ func NewLinkCmd() *cobra.Command {
 			}
 
 			fmt.Println("Código HTTP:", status)
-			fmt.Println("Respuesta del servidor:", resp)
+			fmt.Printf("Respuesta del servidor: {%s}\n", resp.ApiToken)
+
+			fmt.Println()
+			fmt.Println("💾 Guardando configuración...")
 			cfg := config.AgentConfig{
 				ApiToken: resp.ApiToken,
+				ApiURL:   api,
 			}
 			err = config.Save(cfg)
 			if err != nil {
 				log.Fatalf("Error guardando configuración: %v", err)
 			}
+
+			fmt.Println("✅ Configuración actualizada en /etc/autohost/config.yaml")
+			fmt.Println()
+			fmt.Println("📝 Próximos pasos:")
+			fmt.Println("  1. Habilitar servicio: sudo systemctl enable autohost-agent")
+			fmt.Println("  2. Iniciar servicio:   sudo systemctl start autohost-agent")
+			fmt.Println("  3. Verificar estado:   sudo systemctl status autohost-agent")
 
 			return nil
 		},
