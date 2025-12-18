@@ -55,6 +55,7 @@ func ensureAutohostDirs() error {
 		"logs",
 		"state",
 		"backups",
+		"config",
 	}
 
 	for _, sub := range subdirs {
