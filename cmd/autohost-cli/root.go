@@ -5,6 +5,7 @@ package cli
 
 import (
 	"autohost-cli/cmd/autohost-cli/agent"
+	"autohost-cli/cmd/autohost-cli/cc"
 	"autohost-cli/internal/plugins/enroll"
 	"os"
 
@@ -43,5 +44,6 @@ func init() {
 	// rootCmd.AddCommand(expose.ExposeCmd())
 	rootCmd.AddCommand(agent.AgentCmd())
 	rootCmd.AddCommand(enroll.EnrollCmd())
+	rootCmd.AddCommand(cc.CCCmd())
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
