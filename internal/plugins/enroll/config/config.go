@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+
+	"gopkg.in/yaml.v3"
 )
 
 type AgentConfig struct {
@@ -13,6 +15,22 @@ type AgentConfig struct {
 }
 
 const configPath = "/etc/autohost/config.yaml"
+
+// Load reads the agent config from /etc/autohost/config.yaml.
+func Load() (*AgentConfig, error) {
+	content, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("no se pudo leer %s: %w", configPath, err)
+	}
+	var raw struct {
+		APIURL     string `yaml:"api_url"`
+		AgentToken string `yaml:"agent_token"`
+	}
+	if err := yaml.Unmarshal(content, &raw); err != nil {
+		return nil, fmt.Errorf("config inválido: %w", err)
+	}
+	return &AgentConfig{ApiURL: raw.APIURL, ApiToken: raw.AgentToken}, nil
+}
 
 // Save actualiza el agent_token en /etc/autohost/config.yaml
 func Save(cfg AgentConfig) error {

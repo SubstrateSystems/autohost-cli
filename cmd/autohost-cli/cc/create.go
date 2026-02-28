@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	enrollcfg "autohost-cli/internal/plugins/enroll/config"
 	enrollhttp "autohost-cli/internal/plugins/enroll/http"
 
 	"github.com/spf13/cobra"
@@ -24,42 +25,46 @@ const (
 var scriptNameRegexp = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
 func newCreateCmd() *cobra.Command {
-	var description string
-	var api, token string
+	var name, description string
 
 	cmd := &cobra.Command{
-		Use:   "create [name]",
+		Use:   "create",
 		Short: "Create and register a custom command script",
 		Long: `Creates a new bash script in /etc/autohost/commands/ and registers it
 with the AutoHost API so it can be executed remotely from the dashboard.
 
 The script name should be alphanumeric with hyphens or underscores (no extension needed).
-A .sh file will be created with a basic template that you can edit.`,
-		Example: `  # Create a custom command called "backup-db"
-  autohost-cli cc create backup-db --api https://api.autohost.io --token <token>
+A .sh file will be created with a basic template that you can edit.
 
-  # Create with a description
-  autohost-cli cc create cleanup-logs --description "Remove old log files" --api https://api.autohost.io --token <token>`,
-		Args: cobra.ExactArgs(1),
+Credentials are read from /etc/autohost/config.yaml.`,
+		Example: `  autohost cc create --name backup-db --description "Backup the database"`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			name := strings.TrimSpace(args[0])
+			if name == "" {
+				return fmt.Errorf("--name es obligatorio")
+			}
+			name = strings.TrimSpace(name)
 			if !scriptNameRegexp.MatchString(name) {
 				return fmt.Errorf("nombre inválido: solo se permiten letras, números, guiones y guiones bajos")
 			}
 
-			if api == "" || token == "" {
-				return fmt.Errorf("--api y --token son obligatorios")
+			cfg, err := enrollcfg.Load()
+			if err != nil {
+				return fmt.Errorf("no se pudo leer la configuración: %w", err)
+			}
+			if cfg.ApiURL == "" {
+				return fmt.Errorf("api_url no encontrada en /etc/autohost/config.yaml")
+			}
+			if cfg.ApiToken == "" {
+				return fmt.Errorf("agent_token no encontrado en /etc/autohost/config.yaml")
 			}
 
-			return createCustomCommand(name, description, api, token)
+			return createCustomCommand(name, description, cfg.ApiURL, cfg.ApiToken)
 		},
 	}
 
+	cmd.Flags().StringVar(&name, "name", "", "Nombre del comando (letras, números, guiones)")
 	cmd.Flags().StringVar(&description, "description", "", "Descripción del comando personalizado")
-	cmd.Flags().StringVar(&api, "api", "", "URL base del API (https://...)")
-	cmd.Flags().StringVar(&token, "token", "", "Token de autenticación")
-	_ = cmd.MarkFlagRequired("api")
-	_ = cmd.MarkFlagRequired("token")
+	_ = cmd.MarkFlagRequired("name")
 
 	return cmd
 }
@@ -114,7 +119,7 @@ echo "Running custom command: %s"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	status, err := client.PostJSON(ctx, "/v1/custom-commands", payload, nil)
+	status, err := client.PostJSON(ctx, "/v1/node-commands", payload, nil)
 	if err != nil {
 		return fmt.Errorf("error registrando comando en la API: %w", err)
 	}
