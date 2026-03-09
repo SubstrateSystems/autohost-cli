@@ -112,6 +112,7 @@ echo "Running custom command: %s"
 	client := enrollhttp.NewAgentClient(apiURL, token)
 	payload := map[string]string{
 		"name":        name,
+		"type":        "custom",
 		"description": description,
 		"script_path": scriptPath,
 	}

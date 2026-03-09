@@ -2,6 +2,12 @@
 
 .PHONY: vm-run vm-update vm-delete incus-run incus-update incus-delete
 
+
+
+build:
+	@echo "Building $(BINARY_NAME)..."
+	go build -o $(BINARY_NAME) cmd/agent/main.go
+	@echo "Build complete: ./$(BINARY_NAME)"
 # ===== MultiPass ====== #
 
 vm-run:
