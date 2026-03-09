@@ -12,10 +12,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Version se inyecta en build time con -ldflags "-X autohost-cli/cmd/autohost-cli.Version=vX.Y.Z"
+var Version = "dev"
+
 var (
 	rootCmd = &cobra.Command{
-		Use:   "autohost-cli",
-		Short: "CLI para autohosting con Docker/Tailscale/Cloudflare/Caddy",
+		Use:     "autohost",
+		Short:   "CLI para autohosting con Docker/Tailscale/Cloudflare/Caddy",
+		Version: Version,
 	}
 )
 
