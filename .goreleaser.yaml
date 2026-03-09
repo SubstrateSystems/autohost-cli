@@ -16,9 +16,9 @@ builds:
     flags: [ -trimpath ]
     ldflags:
       - -s -w
-      - -X main.version={{.Version}}
-      - -X main.commit={{.ShortCommit}}
-      - -X main.date={{.Date}}
+      - -X autohost-cli/cmd/autohost-cli.Version={{.Version}}
+      - -X autohost-cli/cmd/autohost-cli.Commit={{.ShortCommit}}
+      - -X autohost-cli/cmd/autohost-cli.Date={{.Date}}
 
 archives:
   - id: binario_plano
