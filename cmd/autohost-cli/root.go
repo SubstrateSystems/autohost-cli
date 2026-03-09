@@ -5,6 +5,7 @@ package cli
 
 import (
 	"autohost-cli/cmd/autohost-cli/agent"
+	"autohost-cli/cmd/autohost-cli/cc"
 	"autohost-cli/internal/plugins/enroll"
 	"os"
 
@@ -43,24 +44,6 @@ func init() {
 	// rootCmd.AddCommand(expose.ExposeCmd())
 	rootCmd.AddCommand(agent.AgentCmd())
 	rootCmd.AddCommand(enroll.EnrollCmd())
+	rootCmd.AddCommand(cc.CCCmd())
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
-// func ensureAutohostDirs() error {
-// 	subdirs := []string{
-// 		"config",
-// 		"templates",
-// 		"apps",
-// 		"logs",
-// 		"state",
-// 		"backups",
-// 		"config",
-// 	}
-
-// 	for _, sub := range subdirs {
-// 		if err := os.MkdirAll(utils.GetSubdir(sub), 0755); err != nil {
-// 			return err
-// 		}
-// 	}
-// 	return nil
-// }
