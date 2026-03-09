@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="mazapanuwu13/autohost-cli"
+REPO="SubstrateSystems/autohost-cli"
 BIN_NAME="autohost"
 
 # Detect PATH-friendly BIN_DIR (prioriza /usr/local/bin, si no, ~/.local/bin)
