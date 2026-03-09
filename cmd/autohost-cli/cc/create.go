@@ -18,7 +18,7 @@ import (
 
 const (
 	// commandsDir is the directory where custom command scripts are stored.
-	commandsDir = "/etc/autohost/commands"
+	commandsDir = "/var/lib/autohost/commands"
 )
 
 // scriptNameRegexp validates script names: alphanumeric, hyphens, underscores.
@@ -30,7 +30,7 @@ func newCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create and register a custom command script",
-		Long: `Creates a new bash script in /etc/autohost/commands/ and registers it
+		Long: `Creates a new bash script in /var/lib/autohost/commands/ and registers it
 with the AutoHost API so it can be executed remotely from the dashboard.
 
 The script name should be alphanumeric with hyphens or underscores (no extension needed).
