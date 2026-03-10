@@ -12,8 +12,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Version se inyecta en build time con -ldflags "-X autohost-cli/cmd/autohost-cli.Version=vX.Y.Z"
-var Version = "dev"
+// Inyectado en build time por goreleaser
+var (
+	Version = "dev"
+	Commit  = "none"
+	Date    = "unknown"
+)
 
 var (
 	rootCmd = &cobra.Command{

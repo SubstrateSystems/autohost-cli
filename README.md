@@ -33,16 +33,29 @@ Before installing, make sure you have:
 Install AutoHost CLI directly from GitHub with a single command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mazapanuwu13/autohost-cli/main/scripts/install.sh | bash
-```
-```bash
-export PATH="$PATH:$HOME/.local/bin"
-```
-```bash
-source ~/.bashrc 
+curl -fsSL https://raw.githubusercontent.com/SubstrateSystems/autohost-cli/main/scripts/install.sh | bash
 ```
 
-This script automatically detects your operating system and architecture, downloads the latest binary version from GitHub Releases, and installs AutoHost CLI on your system.
+The script auto-detects your OS and architecture, downloads the latest binary from GitHub Releases, verifies the checksum, and installs it.
+
+If the binary lands in `~/.local/bin`, add it to your PATH:
+
+```bash
+export PATH="$PATH:$HOME/.local/bin"
+source ~/.bashrc
+```
+
+### Specific version
+
+```bash
+VERSION=v0.4.0 curl -fsSL https://raw.githubusercontent.com/SubstrateSystems/autohost-cli/main/scripts/install.sh | bash
+```
+
+### Verify installation
+
+```bash
+autohost --version
+```
 
 ---
 
