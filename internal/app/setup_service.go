@@ -10,14 +10,13 @@ import (
 )
 
 type SetupService struct {
-	Docker ports.Docker
+	Docker    ports.Docker
+	Tailscale ports.Tailscale
 }
 
-func (s *SetupService) Setup() error {
-	// helper para respuestas automáticas
+func (s *SetupService) SetupDocker() error {
 	autoYes := os.Getenv("CI") == "true" || strings.EqualFold(os.Getenv("ASSUME_YES"), "-y")
 
-	// 1) Verificar Docker
 	if !s.Docker.DockerInstalled() {
 		confirm := autoYes || utils.Confirm("Docker no está instalado. ¿Quieres instalarlo ahora? [y/N]: ")
 		if !confirm {
@@ -44,10 +43,36 @@ func (s *SetupService) Setup() error {
 		return nil
 	}
 
-	// 2) Docker ya instalado: solo validar red
 	fmt.Println("✅ Docker ya está instalado.")
 	if err := infra.RunStep("Creación de red de Docker", s.Docker.CreateDockerNetwork); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (s *SetupService) SetupTailscale() error {
+	autoYes := os.Getenv("CI") == "true" || strings.EqualFold(os.Getenv("ASSUME_YES"), "-y")
+
+	if !s.Tailscale.Installed() {
+		confirm := autoYes || utils.Confirm("Tailscale no está instalado. ¿Quieres instalarlo ahora? [y/N]: ")
+		if !confirm {
+			return fmt.Errorf("🚫 instalación cancelada por el usuario")
+		}
+
+		if err := infra.RunStep("Instalación de Tailscale", s.Tailscale.Install); err != nil {
+			return err
+		}
+
+		fmt.Println("✅ Tailscale instalado y conectado.")
+		return nil
+	}
+
+	fmt.Println("✅ Tailscale ya está instalado.")
+	confirm := autoYes || utils.Confirm("¿Quieres autenticarte/reconectar con Tailscale? [y/N]: ")
+	if confirm {
+		if err := infra.RunStep("Conectar con Tailscale", s.Tailscale.Login); err != nil {
+			return err
+		}
 	}
 	return nil
 }

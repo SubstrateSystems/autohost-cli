@@ -1,35 +1,60 @@
 package setup
 
 import (
-	"autohost-cli/internal/adapters/docker"
 	"autohost-cli/internal/app"
 	"fmt"
 
 	"github.com/spf13/cobra"
 )
 
-func SetupCmd() *cobra.Command {
-
-	svc := &app.SetupService{
-		Docker: docker.New(),
-	}
-
+func SetupCmd(svc *app.SetupService) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "setup",
-		Short: "Configura tu servidor para autohospedar servicios",
-		Long: `Este comando instala Docker, Caddy, configura dominios,
-		y prepara túneles seguros para desplegar tus apps autohospedadas.`,
+		Use:   "setup <provider>",
+		Short: "Instala y configura providers (docker, tailscale)",
+		Long: `Instala y configura los providers necesarios para el self-hosting.
+
+Providers disponibles:
+  docker     Instala Docker y crea la red compartida
+  tailscale  Instala Tailscale y conecta al tailnet`,
+		Example: `  autohost setup docker
+  autohost setup tailscale`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("\n🔧 Iniciando configuración del servidor...")
-
-			if err := svc.Setup(); err != nil {
-				return err
-			}
-
-			fmt.Println("\n✅ Configuración inicial completa.")
-			return nil
+			return cmd.Help()
 		},
 	}
 
+	cmd.AddCommand(dockerSubCmd(svc))
+	cmd.AddCommand(tailscaleSubCmd(svc))
+
 	return cmd
+}
+
+func dockerSubCmd(svc *app.SetupService) *cobra.Command {
+	return &cobra.Command{
+		Use:     "docker",
+		Short:   "Instala Docker y configura la red compartida",
+		Example: `  autohost setup docker`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("\n🐳 Configurando Docker...")
+			if err := svc.SetupDocker(); err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+}
+
+func tailscaleSubCmd(svc *app.SetupService) *cobra.Command {
+	return &cobra.Command{
+		Use:     "tailscale",
+		Short:   "Instala Tailscale y conecta al tailnet",
+		Example: `  autohost setup tailscale`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("\n🔐 Configurando Tailscale...")
+			if err := svc.SetupTailscale(); err != nil {
+				return err
+			}
+			return nil
+		},
+	}
 }
