@@ -1,6 +1,6 @@
 
 
-.PHONY: build clean release vm-run vm-update vm-delete incus-run incus-update incus-delete
+.PHONY: build clean release vm-run vm-update vm-delete incus-run incus-update incus-delete incus-start incus-stop
 
 BINARY_NAME = autohost
 REPO        = mazapanuwu13/autohost-cli
@@ -59,3 +59,10 @@ incus-delete:
 	@echo "🧹 Deleting Incus instance ($(VM_NAME))..."
 	@bash scripts/autohost-incus.sh delete
 
+incus-start:
+	@echo "▶️ Starting Incus instance ($(VM_NAME))..."
+	@bash scripts/autohost-incus.sh start
+
+incus-stop:
+	@echo "⏹ Stopping Incus instance ($(VM_NAME))..."
+	@bash scripts/autohost-incus.sh stop

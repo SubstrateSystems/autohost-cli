@@ -1,17 +1,17 @@
 package agent
 
-import "github.com/spf13/cobra"
+import (
+	"autohost-cli/internal/app"
 
-func AgentCmd() *cobra.Command {
+	"github.com/spf13/cobra"
+)
+
+// AgentCmd returns the root agent command.
+func AgentCmd(svc *app.AgentService) *cobra.Command {
 	agentCmd := &cobra.Command{
 		Use:   "agent",
 		Short: "Manage AutoHost agents",
 	}
-
-	agentCmd.AddCommand(agentInstallCmd())
-	// agentCmd.AddCommand(agentStartCmd())
-	// agentCmd.AddCommand(agentRestartCmd())
-	// agentCmd.AddCommand(agentStopCmd())
-
+	agentCmd.AddCommand(agentInstallCmd(svc))
 	return agentCmd
 }

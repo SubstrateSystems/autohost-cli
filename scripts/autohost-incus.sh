@@ -154,23 +154,41 @@ cmd_delete() {
   log "Done."
 }
 
+cmd_stop() {
+  ensure_tools
+  log "Stopping instance ${VM_NAME}..."
+  incus stop "${VM_NAME}" 2>/dev/null || true
+  log "Done."
+}
+
+cmd_start() {
+  ensure_tools
+  log "Starting instance ${VM_NAME}..."
+  incus start "${VM_NAME}" 2>/dev/null || true
+  log "Done."
+}
+
 usage() {
   cat <<EOF
-Usage: $(basename "$0") <run|update|delete>
+Usage: $(basename "$0") <run|update|delete|stop|start>
 
 Commands:
   run     Compiles the binary, creates/starts the instance '${VM_NAME}', installs the binary, and opens a shell.
   update  Compiles and replaces the binary inside the instance (requires the instance to exist).
   delete  Stops and deletes the instance '${VM_NAME}'.
+  start  Starts the instance '${VM_NAME}' if it exists.
+  stop    Stops the instance '${VM_NAME}'.
 
 EOF
 }
 
 main() {
   case "${1:-}" in
-    run)    cmd_run ;;
+    run|create) cmd_run ;;
     update) cmd_update ;;
+    start) cmd_start ;;
     delete) cmd_delete ;;
+    stop) cmd_stop ;;
     *)      usage; exit 1 ;;
   esac
 }

@@ -1,6 +1,7 @@
 package ports
 
 type Tailscale interface {
+	Installed() bool
 	Install() error
 	Login() error
 	IP() (string, error)

@@ -1,10 +1,8 @@
 package install
 
 import (
-	"autohost-cli/internal/adapters/docker"
 	"autohost-cli/internal/app"
 	"autohost-cli/internal/domain"
-	"autohost-cli/internal/platform/di"
 	"fmt"
 	"os"
 	"strings"
@@ -13,14 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func InstallCmd(deps di.Deps) *cobra.Command {
+func InstallCmd(svc *app.AppService) *cobra.Command {
 	var listOnly bool
-
-	var svc = &app.AppService{
-		Docker:    docker.New(),
-		Installed: deps.Repos.Installed,
-		Catalog:   deps.Repos.Catalog,
-	}
 
 	cmd := &cobra.Command{
 		Use:   "install [name]",
@@ -28,7 +20,7 @@ func InstallCmd(deps di.Deps) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 			if listOnly {
-				apps, err := deps.Repos.Catalog.ListApps(ctx)
+				apps, err := svc.ListCatalog(ctx)
 				if err != nil {
 					return err
 				}
@@ -42,7 +34,7 @@ func InstallCmd(deps di.Deps) *cobra.Command {
 
 			if name == "" {
 				fmt.Println("Selecciona una aplicación para instalar:")
-				apps, _ := deps.Repos.Catalog.ListApps(ctx)
+				apps, _ := svc.ListCatalog(ctx)
 				for i, a := range apps {
 					fmt.Printf("[%d] %s\n", i+1, a.Name)
 				}

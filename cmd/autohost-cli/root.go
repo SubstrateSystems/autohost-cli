@@ -1,12 +1,22 @@
-/*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-*/
 package cli
 
 import (
 	"autohost-cli/cmd/autohost-cli/agent"
+	"autohost-cli/cmd/autohost-cli/app"
 	"autohost-cli/cmd/autohost-cli/cc"
-	"autohost-cli/internal/plugins/enroll"
+	"autohost-cli/cmd/autohost-cli/enroll"
+	"autohost-cli/cmd/autohost-cli/expose"
+	"autohost-cli/cmd/autohost-cli/install"
+	"autohost-cli/cmd/autohost-cli/setup"
+	"autohost-cli/internal/adapters/caddy"
+	"autohost-cli/internal/adapters/catalog"
+	"autohost-cli/internal/adapters/cloudflare"
+	coredns "autohost-cli/internal/adapters/coreDNS"
+	"autohost-cli/internal/adapters/docker"
+	"autohost-cli/internal/adapters/installed"
+	"autohost-cli/internal/adapters/tailscale"
+	"autohost-cli/internal/adapters/terraform"
+	appSvc "autohost-cli/internal/app"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -19,13 +29,11 @@ var (
 	Date    = "unknown"
 )
 
-var (
-	rootCmd = &cobra.Command{
-		Use:     "autohost",
-		Short:   "CLI para autohosting con Docker/Tailscale/Cloudflare/Caddy",
-		Version: Version,
-	}
-)
+var rootCmd = &cobra.Command{
+	Use:     "autohost",
+	Short:   "CLI para autohosting con Docker/Tailscale/Cloudflare/Caddy",
+	Version: Version,
+}
 
 func Execute() {
 	err := rootCmd.Execute()
@@ -35,23 +43,32 @@ func Execute() {
 }
 
 func init() {
-	// if !utils.IsInitialized() {
-	// 	err := ensureAutohostDirs()
-	// 	if err != nil {
-	// 		println("❌ Error al crear estructura de carpetas:", err.Error())
-	// 		os.Exit(1)
-	// 	}
-	// 	println("✅ Entorno de AutoHost creado")
-	// }
+	// Composition root: all services are constructed and injected here.
 
-	// rootCmd.AddCommand(initializer.InitCommand())
-	// deps = di.Build(dbc.DB)
-	// rootCmd.AddCommand(app.AppCmd())
-	// rootCmd.AddCommand(install.InstallCmd())
-	// rootCmd.AddCommand(setup.SetupCmd())
-	// rootCmd.AddCommand(expose.ExposeCmd())
-	rootCmd.AddCommand(agent.AgentCmd())
-	rootCmd.AddCommand(enroll.EnrollCmd())
-	rootCmd.AddCommand(cc.CCCmd())
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	dockerAdapter := docker.New()
+
+	appService := &appSvc.AppService{
+		Docker:    dockerAdapter,
+		Catalog:   catalog.New(),
+		Installed: installed.New(),
+	}
+
+	exposeService := &appSvc.ExposeService{
+		Caddy:      caddy.New(),
+		Tailscale:  tailscale.New(),
+		CoreDNS:    coredns.New(),
+		Cloudflare: cloudflare.New(),
+		Terraform:  terraform.New(),
+	}
+
+	rootCmd.AddCommand(agent.AgentCmd(&appSvc.AgentService{}))
+	rootCmd.AddCommand(enroll.EnrollCmd(&appSvc.EnrollService{}))
+	rootCmd.AddCommand(cc.CCCmd(&appSvc.CCService{}))
+	rootCmd.AddCommand(app.AppCmd(appService))
+	rootCmd.AddCommand(install.InstallCmd(appService))
+	rootCmd.AddCommand(expose.ExposeCmd(exposeService))
+	rootCmd.AddCommand(setup.SetupCmd(&appSvc.SetupService{
+		Docker:    dockerAdapter,
+		Tailscale: tailscale.New(),
+	}))
 }

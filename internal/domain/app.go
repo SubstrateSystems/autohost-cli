@@ -46,6 +46,7 @@ type AppConfig struct {
 	AppSettings InstalledApp
 	MySQL       *MySQLConfig
 	Postgres    *PostgresConfig
+	Minio       *MinioConfig
 }
 
 type MySQLConfig struct {
@@ -61,4 +62,14 @@ type PostgresConfig struct {
 	Password string
 	Database string
 	Port     string
+}
+
+// MinioConfig holds credentials and storage configuration for a MinIO instance.
+type MinioConfig struct {
+	User        string
+	Password    string
+	ConsolePort string
+	// DataPath is the host path where MinIO will persist data.
+	// When backed by an external disk it is the disk's mount point.
+	DataPath string
 }

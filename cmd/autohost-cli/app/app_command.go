@@ -1,22 +1,22 @@
 package app
 
 import (
-	"autohost-cli/internal/platform/di"
+	"autohost-cli/internal/app"
 
 	"github.com/spf13/cobra"
 )
 
-func AppCmd(deps di.Deps) *cobra.Command {
+func AppCmd(svc *app.AppService) *cobra.Command {
 	appCmd := &cobra.Command{
 		Use:   "app",
 		Short: "Application management",
 	}
 
-	appCmd.AddCommand(appLsCmd(deps))
-	appCmd.AddCommand(appRemoveCmd(deps))
-	appCmd.AddCommand(appStartCmd())
-	appCmd.AddCommand(appStatusCmd())
-	appCmd.AddCommand(appStopCmd())
+	appCmd.AddCommand(appLsCmd(svc))
+	appCmd.AddCommand(appRemoveCmd(svc))
+	appCmd.AddCommand(appStartCmd(svc))
+	appCmd.AddCommand(appStatusCmd(svc))
+	appCmd.AddCommand(appStopCmd(svc))
 
 	return appCmd
 }
