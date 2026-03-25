@@ -3,7 +3,7 @@ set -euo pipefail
 
 NO_SHELL="${NO_SHELL:-0}"
 
-VM_NAME="autohost-test"
+VM_NAME="${VM_NAME:-autohost-test}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 BIN_DIR="${REPO_ROOT}/dist"
@@ -89,7 +89,16 @@ push_and_install() {
     return
   fi
 
-  incus exec "${VM_NAME}" -- bash -l
+  # AUTOHOST_CLOUD_URL must be the URL the *browser on the host* uses.
+  # Cookies are scoped to localhost, so we must use localhost:3000 — not the
+  # gateway IP — otherwise the browser won't send the access_token cookie.
+  CLOUD_URL="http://localhost:3000"
+  GATEWAY="$(incus exec "${VM_NAME}" -- sh -c 'ip route show default' | awk '/default/{print $3; exit}')"
+  API_URL="http://${GATEWAY}:8080"
+  log "Setting AUTOHOST_CLOUD_URL=${CLOUD_URL} (browser perspective)"
+  log "Setting AUTOHOST_API_URL=${API_URL} (container -> host API)"
+
+  incus exec "${VM_NAME}" -- env AUTOHOST_CLOUD_URL="${CLOUD_URL}" AUTOHOST_API_URL="${API_URL}" bash -l
 }
 
 update_binary() {

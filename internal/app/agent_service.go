@@ -64,6 +64,11 @@ func (s *AgentService) Install() error {
 		return fmt.Errorf("error creando directorio de configuración: %w", err)
 	}
 
+	fmt.Println("4️⃣.1️⃣  Verificando usuario del servicio...")
+	if err := ensureAgentSystemUser(needsSudo); err != nil {
+		return fmt.Errorf("error configurando usuario del servicio: %w", err)
+	}
+
 	fmt.Println("5️⃣  Instalando binario en", agentInstallPath, "...")
 	destBinary := filepath.Join(agentInstallPath, agentBinaryName)
 	if err := agentRunCmd(needsSudo, "cp", binaryPath, destBinary); err != nil {
@@ -78,7 +83,10 @@ func (s *AgentService) Install() error {
 	if err := agentRunCmd(needsSudo, "cp", configFile, destConfig); err != nil {
 		return fmt.Errorf("error copiando configuración: %w", err)
 	}
-	if err := agentRunCmd(needsSudo, "chmod", "600", destConfig); err != nil {
+	if err := agentRunCmd(needsSudo, "chown", "root:autohost", destConfig); err != nil {
+		return fmt.Errorf("error estableciendo propietario del config: %w", err)
+	}
+	if err := agentRunCmd(needsSudo, "chmod", "640", destConfig); err != nil {
 		return fmt.Errorf("error estableciendo permisos de configuración: %w", err)
 	}
 
@@ -142,4 +150,42 @@ func agentRunCmd(sudo bool, name string, args ...string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+func agentRunCmdQuiet(sudo bool, name string, args ...string) error {
+	cmdName, cmdArgs := name, args
+	if sudo {
+		cmdArgs = append([]string{name}, args...)
+		cmdName = "sudo"
+	}
+	cmd := exec.Command(cmdName, cmdArgs...)
+	return cmd.Run()
+}
+
+func ensureAgentSystemUser(needsSudo bool) error {
+	if err := agentRunCmdQuiet(needsSudo, "id", "-u", "autohost"); err == nil {
+		return nil
+	}
+
+	nologin := "/usr/sbin/nologin"
+	if _, err := os.Stat(nologin); err != nil {
+		nologin = "/usr/bin/false"
+	}
+
+	if err := agentRunCmd(needsSudo,
+		"useradd",
+		"--system",
+		"--no-create-home",
+		"--shell", nologin,
+		"--comment", "Autohost Agent",
+		"autohost",
+	); err != nil {
+		return err
+	}
+
+	if err := agentRunCmdQuiet(needsSudo, "getent", "group", "docker"); err == nil {
+		_ = agentRunCmd(needsSudo, "usermod", "-aG", "docker", "autohost")
+	}
+
+	return nil
 }

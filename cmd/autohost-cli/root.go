@@ -7,6 +7,7 @@ import (
 	"autohost-cli/cmd/autohost-cli/enroll"
 	"autohost-cli/cmd/autohost-cli/install"
 	"autohost-cli/cmd/autohost-cli/setup"
+	"autohost-cli/cmd/autohost-cli/up"
 	"autohost-cli/internal/adapters/catalog"
 	"autohost-cli/internal/adapters/docker"
 	"autohost-cli/internal/adapters/installed"
@@ -50,6 +51,7 @@ func init() {
 
 	rootCmd.AddCommand(agent.AgentCmd(&appSvc.AgentService{}))
 	rootCmd.AddCommand(enroll.EnrollCmd(&appSvc.EnrollService{}))
+	rootCmd.AddCommand(up.UpCmd(&appSvc.UpService{}))
 	rootCmd.AddCommand(cc.CCCmd(&appSvc.CCService{}))
 	rootCmd.AddCommand(app.AppCmd(appService))
 	rootCmd.AddCommand(install.InstallCmd(appService))
