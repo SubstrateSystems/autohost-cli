@@ -5,17 +5,13 @@ import (
 	"autohost-cli/cmd/autohost-cli/app"
 	"autohost-cli/cmd/autohost-cli/cc"
 	"autohost-cli/cmd/autohost-cli/enroll"
-	"autohost-cli/cmd/autohost-cli/expose"
 	"autohost-cli/cmd/autohost-cli/install"
 	"autohost-cli/cmd/autohost-cli/setup"
-	"autohost-cli/internal/adapters/caddy"
+	"autohost-cli/cmd/autohost-cli/up"
 	"autohost-cli/internal/adapters/catalog"
-	"autohost-cli/internal/adapters/cloudflare"
-	coredns "autohost-cli/internal/adapters/coreDNS"
 	"autohost-cli/internal/adapters/docker"
 	"autohost-cli/internal/adapters/installed"
 	"autohost-cli/internal/adapters/tailscale"
-	"autohost-cli/internal/adapters/terraform"
 	appSvc "autohost-cli/internal/app"
 	"os"
 
@@ -53,20 +49,12 @@ func init() {
 		Installed: installed.New(),
 	}
 
-	exposeService := &appSvc.ExposeService{
-		Caddy:      caddy.New(),
-		Tailscale:  tailscale.New(),
-		CoreDNS:    coredns.New(),
-		Cloudflare: cloudflare.New(),
-		Terraform:  terraform.New(),
-	}
-
 	rootCmd.AddCommand(agent.AgentCmd(&appSvc.AgentService{}))
 	rootCmd.AddCommand(enroll.EnrollCmd(&appSvc.EnrollService{}))
+	rootCmd.AddCommand(up.UpCmd(&appSvc.UpService{}))
 	rootCmd.AddCommand(cc.CCCmd(&appSvc.CCService{}))
 	rootCmd.AddCommand(app.AppCmd(appService))
 	rootCmd.AddCommand(install.InstallCmd(appService))
-	rootCmd.AddCommand(expose.ExposeCmd(exposeService))
 	rootCmd.AddCommand(setup.SetupCmd(&appSvc.SetupService{
 		Docker:    dockerAdapter,
 		Tailscale: tailscale.New(),

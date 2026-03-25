@@ -5,8 +5,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -40,6 +43,7 @@ func NewAgentClient(apiBase, agentToken string) *Client {
 }
 
 // PostJSON marshals in, POSTs to base+path, and decodes the response body into out (may be nil).
+// On HTTP 4xx/5xx, returns the response body as the error message.
 func (c *Client) PostJSON(ctx context.Context, path string, in, out any) (int, error) {
 	b, _ := json.Marshal(in)
 	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, c.base+path, bytes.NewReader(b))
@@ -52,8 +56,12 @@ func (c *Client) PostJSON(ctx context.Context, path string, in, out any) (int, e
 		return 0, err
 	}
 	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode >= 400 {
+		return resp.StatusCode, fmt.Errorf("%s", strings.TrimSpace(string(body)))
+	}
 	if out != nil {
-		_ = json.NewDecoder(resp.Body).Decode(out)
+		_ = json.Unmarshal(body, out)
 	}
 	return resp.StatusCode, nil
 }

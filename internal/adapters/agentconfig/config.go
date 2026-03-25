@@ -3,9 +3,11 @@ package agentconfig
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"regexp"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -14,6 +16,7 @@ import (
 type AgentConfig struct {
 	ApiToken string
 	ApiURL   string
+	NodeID   string
 }
 
 const configPath = "/etc/autohost/config.yaml"
@@ -43,7 +46,15 @@ func Save(cfg AgentConfig) error {
 
 	content, err := os.ReadFile(configPath)
 	if err != nil {
-		return fmt.Errorf("error leyendo configuración: %w", err)
+		if !os.IsPermission(err) {
+			return fmt.Errorf("error leyendo configuración: %w", err)
+		}
+		// File is owned by root — read it via sudo.
+		out, sudoErr := exec.Command("sudo", "cat", configPath).Output()
+		if sudoErr != nil {
+			return fmt.Errorf("error leyendo configuración: %w", err)
+		}
+		content = out
 	}
 
 	updated := string(content)
@@ -52,6 +63,20 @@ func Save(cfg AgentConfig) error {
 	if cfg.ApiURL != "" {
 		updated = regexp.MustCompile(`(?m)^api_url:.*$`).
 			ReplaceAllString(updated, fmt.Sprintf(`api_url: "%s"`, cfg.ApiURL))
+
+		// Derive ws_url and grpc_address from api_url.
+		if wsURL, err := deriveWSURL(cfg.ApiURL); err == nil {
+			updated = regexp.MustCompile(`(?m)^ws_url:.*$`).
+				ReplaceAllString(updated, fmt.Sprintf(`ws_url: "%s"`, wsURL))
+		}
+		if grpcAddr, err := deriveGRPCAddress(cfg.ApiURL); err == nil {
+			updated = regexp.MustCompile(`(?m)^grpc_address:.*$`).
+				ReplaceAllString(updated, fmt.Sprintf(`grpc_address: "%s"`, grpcAddr))
+		}
+	}
+	if cfg.NodeID != "" {
+		updated = regexp.MustCompile(`(?m)^node_id:.*$`).
+			ReplaceAllString(updated, fmt.Sprintf(`node_id: "%s"`, cfg.NodeID))
 	}
 
 	if os.Geteuid() == 0 {
@@ -77,4 +102,30 @@ func Save(cfg AgentConfig) error {
 		return fmt.Errorf("error copiando archivo con sudo: %w", err)
 	}
 	return nil
+}
+
+// deriveWSURL converts an HTTP API URL to a WebSocket URL with /ws path.
+func deriveWSURL(apiURL string) (string, error) {
+	u, err := url.Parse(apiURL)
+	if err != nil {
+		return "", err
+	}
+	switch u.Scheme {
+	case "https":
+		u.Scheme = "wss"
+	default:
+		u.Scheme = "ws"
+	}
+	u.Path = strings.TrimRight(u.Path, "/") + "/ws"
+	return u.String(), nil
+}
+
+// deriveGRPCAddress extracts host from the API URL and uses port 9090.
+func deriveGRPCAddress(apiURL string) (string, error) {
+	u, err := url.Parse(apiURL)
+	if err != nil {
+		return "", err
+	}
+	host := u.Hostname()
+	return host + ":9090", nil
 }

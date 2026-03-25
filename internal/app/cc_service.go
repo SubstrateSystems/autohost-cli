@@ -15,6 +15,10 @@ import (
 // CCCommandsDir is the directory where custom command scripts are stored.
 const CCCommandsDir = "/var/lib/autohost/commands"
 
+// agentGroup is the system group that owns the commands directory and scripts.
+// The autohost-agent service runs under this group and needs read+execute access.
+const agentGroup = "autohost"
+
 // CCService manages custom command scripts and their registration with the AutoHost API.
 type CCService struct{}
 
@@ -46,7 +50,8 @@ echo "Running custom command: %s"
 # TODO: Add your commands here
 `, name, description, time.Now().Format("2006-01-02 15:04:05"), name)
 
-	if err := s.writeFilePrivileged(scriptPath, []byte(tmpl), 0755); err != nil {
+	// 0750: owner(root) rwx, group(autohost) r-x, others ---
+	if err := s.writeFilePrivileged(scriptPath, []byte(tmpl), 0750); err != nil {
 		return fmt.Errorf("error creando script: %w", err)
 	}
 	fmt.Printf("📄 Script creado: %s\n", scriptPath)
@@ -111,38 +116,47 @@ func (s *CCService) ensureCommandsDir() error {
 	if _, err := os.Stat(CCCommandsDir); err == nil {
 		return nil
 	}
-	if os.Geteuid() != 0 {
-		if _, err := exec.LookPath("sudo"); err != nil {
-			return fmt.Errorf("se requiere sudo para crear %s. Ejecuta como root o instala sudo", CCCommandsDir)
+	if os.Geteuid() == 0 {
+		if err := os.MkdirAll(CCCommandsDir, 0750); err != nil {
+			return err
 		}
-		cmd := exec.Command("sudo", "mkdir", "-p", CCCommandsDir)
-		cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
-		return cmd.Run()
+		return exec.Command("chown", fmt.Sprintf("root:%s", agentGroup), CCCommandsDir).Run()
 	}
-	return os.MkdirAll(CCCommandsDir, 0755)
+	if _, err := exec.LookPath("sudo"); err != nil {
+		return fmt.Errorf("se requiere sudo para crear %s. Ejecuta como root o instala sudo", CCCommandsDir)
+	}
+	if err := exec.Command("sudo", "mkdir", "-p", CCCommandsDir).Run(); err != nil {
+		return err
+	}
+	if err := exec.Command("sudo", "chmod", "750", CCCommandsDir).Run(); err != nil {
+		return err
+	}
+	return exec.Command("sudo", "chown", fmt.Sprintf("root:%s", agentGroup), CCCommandsDir).Run()
 }
 
 func (s *CCService) writeFilePrivileged(path string, data []byte, perm os.FileMode) error {
 	if os.Geteuid() == 0 {
-		return os.WriteFile(path, data, perm)
+		if err := os.WriteFile(path, data, perm); err != nil {
+			return err
+		}
+		return exec.Command("chown", fmt.Sprintf("root:%s", agentGroup), path).Run()
 	}
+
 	tmp, err := os.CreateTemp("", "autohost-cc-*.sh")
 	if err != nil {
 		return err
 	}
 	defer os.Remove(tmp.Name())
-
 	if err := os.WriteFile(tmp.Name(), data, perm); err != nil {
 		return err
 	}
 	tmp.Close()
 
-	cmd := exec.Command("sudo", "cp", tmp.Name(), path)
-	cmd.Stdout, cmd.Stderr = os.Stdout, os.Stderr
-	if err := cmd.Run(); err != nil {
+	if err := exec.Command("sudo", "cp", tmp.Name(), path).Run(); err != nil {
 		return err
 	}
-	chmod := exec.Command("sudo", "chmod", fmt.Sprintf("%o", perm), path)
-	chmod.Stdout, chmod.Stderr = os.Stdout, os.Stderr
-	return chmod.Run()
+	if err := exec.Command("sudo", "chmod", fmt.Sprintf("%o", perm), path).Run(); err != nil {
+		return err
+	}
+	return exec.Command("sudo", "chown", fmt.Sprintf("root:%s", agentGroup), path).Run()
 }

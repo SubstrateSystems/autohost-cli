@@ -37,19 +37,16 @@ func (s *EnrollService) Link(api, token, name string) error {
 	defer cancel()
 
 	var resp domain.NodeResponse
-	status, err := client.PostJSON(ctx, "/v1/enrollments/enroll", req, &resp)
+	_, err := client.PostJSON(ctx, "/v1/enrollments/enroll", req, &resp)
 	if err != nil {
-		return fmt.Errorf("error en la petición: %w", err)
+		return fmt.Errorf("enrollment fallido: %w", err)
 	}
-
-	fmt.Println("Código HTTP:", status)
-	fmt.Printf("Respuesta del servidor: {%s}\n", resp.ApiToken)
-	fmt.Println()
 	fmt.Println("💾 Guardando configuración...")
 
 	if err := agentconfig.Save(agentconfig.AgentConfig{
 		ApiToken: resp.ApiToken,
 		ApiURL:   api,
+		NodeID:   resp.NodeID,
 	}); err != nil {
 		return fmt.Errorf("error guardando configuración: %w", err)
 	}
