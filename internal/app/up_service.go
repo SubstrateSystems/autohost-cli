@@ -7,15 +7,13 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
-	"os/exec"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
 )
 
 const DefaultCloudURL = "https://cloud.autohst.dev"
+const DefaultAPIURL = "https://api.autohst.dev"
 
 // UpService handles the interactive node enrollment flow (Tailscale-style).
 type UpService struct{}
@@ -95,21 +93,13 @@ func (s *UpService) Up(cloudURL, name string) error {
 	go func() { _ = srv.Serve(listener) }()
 	defer srv.Close()
 
-	// The CLI knows its own outbound IP, which the Go backend is also reachable on
-	// (both run on the same host/machine). Pass this as api_url so Next.js can
-	// return the correct enrollment URL regardless of where the CLI is running.
-	apiURL := fmt.Sprintf("http://%s:8080", callbackIP)
-	if envAPI := strings.TrimRight(os.Getenv("AUTOHOST_API_URL"), "/"); envAPI != "" {
-		apiURL = envAPI
-	}
-
 	// Build the cloud CLI-auth URL.
 	authURL := fmt.Sprintf("%s/cli-auth?state=%s&callback=%s&node=%s&api_url=%s",
 		cloudURL,
 		url.QueryEscape(state),
 		url.QueryEscape(callbackBase),
 		url.QueryEscape(nd.HostName),
-		url.QueryEscape(apiURL),
+		url.QueryEscape(DefaultAPIURL),
 	)
 
 	fmt.Println()
@@ -120,7 +110,6 @@ func (s *UpService) Up(cloudURL, name string) error {
 	fmt.Println()
 	fmt.Println("💡 Si el navegador no se abre automáticamente, copia y pega la URL.")
 	fmt.Println()
-	openBrowser(authURL)
 
 	fmt.Println("⏳ Esperando autorización en el navegador (5 min)...")
 
@@ -135,22 +124,6 @@ func (s *UpService) Up(cloudURL, name string) error {
 	case <-time.After(5 * time.Minute):
 		return fmt.Errorf("tiempo de espera agotado (5 min). Vuelve a ejecutar `autohost up`")
 	}
-}
-
-// openBrowser tries to open the given URL in the default browser.
-func openBrowser(rawURL string) {
-	var cmd *exec.Cmd
-	switch runtime.GOOS {
-	case "linux":
-		cmd = exec.Command("xdg-open", rawURL)
-	case "darwin":
-		cmd = exec.Command("open", rawURL)
-	case "windows":
-		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", rawURL)
-	default:
-		return
-	}
-	_ = cmd.Start()
 }
 
 const successHTML = `<!DOCTYPE html>

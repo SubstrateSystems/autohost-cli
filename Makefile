@@ -19,19 +19,29 @@ clean:
 	rm -f $(BINARY_NAME)
 	rm -rf dist/
 
+
 release:
-	@echo "🚀 Building release $(VERSION) for: $(PLATFORMS)"
-	@mkdir -p dist
-	@for platform in $(PLATFORMS); do \
-		GOOS=$${platform%/*} GOARCH=$${platform#*/}; \
+	@CURRENT=$$(git describe --tags --always --dirty 2>/dev/null || echo "dev"); \
+	echo "📌 Versión actual: $$CURRENT"; \
+	printf "🔖 Nueva versión (ej. v1.2.3): "; \
+	read NEW_VERSION; \
+	if [ -z "$$NEW_VERSION" ]; then echo "❌ La versión no puede estar vacía"; exit 1; fi; \
+	echo "🏷️  Creando tag $$NEW_VERSION..."; \
+	git tag -a "$$NEW_VERSION" -m "Release $$NEW_VERSION"; \
+	echo "🚀 Compilando release $$NEW_VERSION para: $(PLATFORMS)"; \
+	mkdir -p dist; \
+	for platform in $(PLATFORMS); do \
+		GOOS=$${platform%/*}; GOARCH=$${platform#*/}; \
 		out="dist/$(BINARY_NAME)-$${GOOS}-$${GOARCH}"; \
-		echo "  → $${out}"; \
-		GOOS=$$GOOS GOARCH=$$GOARCH go build -ldflags "$(LDFLAGS)" -o "$$out" main.go; \
-	done
-	@echo "🔐 Generating checksums..."
-	@cd dist && sha256sum $(BINARY_NAME)-* > checksums_$(VERSION).txt
-	@echo "✅ Release artifacts in dist/"
-	@ls -lh dist/
+		echo "  → $$out"; \
+		GOOS=$$GOOS GOARCH=$$GOARCH go build -ldflags "-s -w -X autohost-cli/cmd/autohost-cli.Version=$$NEW_VERSION" -o "$$out" main.go; \
+	done; \
+	echo "🔐 Generating checksums..."; \
+	cd dist && sha256sum $(BINARY_NAME)-* > checksums_$${NEW_VERSION}.txt; \
+	echo "✅ Release artifacts in dist/"; \
+	ls -lh dist/; \
+	echo ""; \
+	echo "💡 Para publicar el tag ejecuta: git push origin $$NEW_VERSION"
 
 
 dev-up: build
