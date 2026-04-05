@@ -79,7 +79,6 @@ func ensureCurl() error {
 	case strings.Contains(id, "suse") || strings.Contains(id, "sles") || strings.Contains(id, "opensuse"):
 		return utils.ExecShell(`sudo zypper --non-interactive install -y curl ca-certificates`)
 	default:
-		// mejor intentar y que falle claro
 		return utils.Exec("which", "curl")
 	}
 }

@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const DefaultCloudURL = "https://cloud.autohost.dev"
+const DefaultCloudURL = "https://cloud.autohst.dev"
 
 // UpService handles the interactive node enrollment flow (Tailscale-style).
 type UpService struct{}

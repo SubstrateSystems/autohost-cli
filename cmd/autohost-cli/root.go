@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"autohost-cli/cmd/autohost-cli/agent"
 	"autohost-cli/cmd/autohost-cli/app"
 	"autohost-cli/cmd/autohost-cli/cc"
 	"autohost-cli/cmd/autohost-cli/enroll"
@@ -40,7 +39,6 @@ func Execute() {
 
 func init() {
 	// Composition root: all services are constructed and injected here.
-
 	dockerAdapter := docker.New()
 
 	appService := &appSvc.AppService{
@@ -49,7 +47,6 @@ func init() {
 		Installed: installed.New(),
 	}
 
-	rootCmd.AddCommand(agent.AgentCmd(&appSvc.AgentService{}))
 	rootCmd.AddCommand(enroll.EnrollCmd(&appSvc.EnrollService{}))
 	rootCmd.AddCommand(up.UpCmd(&appSvc.UpService{}))
 	rootCmd.AddCommand(cc.CCCmd(&appSvc.CCService{}))
