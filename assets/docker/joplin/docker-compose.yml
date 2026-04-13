@@ -1,7 +1,7 @@
 services:
-  $postgres-database:
+  $service-name-db:
     image: postgres:16-alpine
-    container_name: $postgres-database
+    container_name: $service-name-db
     restart: always
     ports:
       - "$postgres-port:5432"
@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: $postgres-user
       POSTGRES_PASSWORD: $postgres-password
     volumes:
-      - $postgres-database:/var/lib/postgresql/data
+      - $service-name-db:/var/lib/postgresql/data
     networks:
       - autohost_net
 
@@ -31,14 +31,14 @@ services:
       POSTGRES_USER: $postgres-user
       POSTGRES_PASSWORD: $postgres-password
       POSTGRES_PORT: "5432"
-      POSTGRES_HOST: $postgres-database
+      POSTGRES_HOST: $service-name-db
     depends_on:
-      - $postgres-database
+      - $service-name-db
     networks:
       - autohost_net
 
 volumes:
-  $postgres-database:
+  $service-name-db:
 
 networks:
   autohost_net:

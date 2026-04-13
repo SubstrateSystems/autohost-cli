@@ -15,10 +15,6 @@ build:
 	go build -ldflags "$(LDFLAGS)" -o $(BINARY_NAME) main.go
 	@echo "✅ Build complete: ./$(BINARY_NAME)"
 
-clean:
-	rm -f $(BINARY_NAME)
-	rm -rf dist/
-
 
 release:
 	@CURRENT=$$(git describe --tags --always --dirty 2>/dev/null || echo "dev"); \
@@ -44,21 +40,6 @@ release:
 	echo "💡 Para publicar el tag ejecuta: git push origin $$NEW_VERSION"
 
 
-dev-up: build
-	@echo "🧪 Testing autohost up against local dev (http://localhost:3000)..."
-	./$(BINARY_NAME) up --cloud http://localhost:3000
-
-vm-run:
-	@echo "🚀 Creating Multipass VM ($(VM_NAME))..."
-	@bash scripts/autohost-multipass.sh run
-
-vm-update:
-	@echo "🔄 Updating autohost binary in VM ($(VM_NAME))..."
-	@bash scripts/autohost-multipass.sh update
-
-vm-delete:
-	@echo "🧹 Deleting Multipass VM ($(VM_NAME))..."
-	@bash scripts/autohost-multipass.sh delete
 
 # ===== Incus ====== #
 
