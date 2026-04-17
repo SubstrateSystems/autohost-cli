@@ -14,9 +14,10 @@ import (
 
 // AgentConfig holds the agent's runtime configuration.
 type AgentConfig struct {
-	ApiToken string
-	ApiURL   string
-	NodeID   string
+	ApiToken     string
+	RefreshToken string
+	ApiURL       string
+	NodeID       string
 }
 
 const configPath = "/etc/autohost/config.yaml"
@@ -60,6 +61,10 @@ func Save(cfg AgentConfig) error {
 	updated := string(content)
 	updated = regexp.MustCompile(`(?m)^agent_token:.*$`).
 		ReplaceAllString(updated, fmt.Sprintf(`agent_token: "%s"`, cfg.ApiToken))
+	if cfg.RefreshToken != "" {
+		updated = regexp.MustCompile(`(?m)^refresh_token:.*$`).
+			ReplaceAllString(updated, fmt.Sprintf(`refresh_token: "%s"`, cfg.RefreshToken))
+	}
 	if cfg.ApiURL != "" {
 		updated = regexp.MustCompile(`(?m)^api_url:.*$`).
 			ReplaceAllString(updated, fmt.Sprintf(`api_url: "%s"`, cfg.ApiURL))
