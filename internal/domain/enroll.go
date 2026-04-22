@@ -21,6 +21,8 @@ type NodeRequest struct {
 
 // NodeResponse is the API response after a successful enrollment.
 type NodeResponse struct {
-	NodeID   string `json:"node_id"`
-	ApiToken string `json:"api_token"`
+	NodeID       string `json:"node_id"`
+	ApiToken     string `json:"api_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
 }

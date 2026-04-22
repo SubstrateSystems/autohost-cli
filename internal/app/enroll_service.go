@@ -44,9 +44,10 @@ func (s *EnrollService) Link(api, token, name string) error {
 	fmt.Println("💾 Guardando configuración...")
 
 	if err := agentconfig.Save(agentconfig.AgentConfig{
-		ApiToken: resp.ApiToken,
-		ApiURL:   api,
-		NodeID:   resp.NodeID,
+		ApiToken:     resp.ApiToken,
+		RefreshToken: resp.RefreshToken,
+		ApiURL:       api,
+		NodeID:       resp.NodeID,
 	}); err != nil {
 		return fmt.Errorf("error guardando configuración: %w", err)
 	}
