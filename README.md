@@ -1,39 +1,32 @@
 ![autohost-cli](./autohost-cli.png)
 
+# AutoHost CLI
 
-# 🚀 AutoHost CLI
+CLI para automatizar el self-hosting en Linux: instala aplicaciones, gestiona el agente, y conecta nodos con la [autohost-cloud-api](../autohost-cloud-api).
 
-**Take back control of your services.**  
-**AutoHost CLI** is a command-line tool to install, configure, and manage applications and services **on your own server**, without depending on third parties and with a simple and automated workflow.
+## Stack
 
----
+- **Go** 1.23.0
+- **Cobra** (comandos CLI)
+- **SQLite** (estado local via modernc/sqlite)
+- **Docker** (backend de apps)
+- **Caddy / CoreDNS / Tailscale / Cloudflare Tunnel** (exposición de servicios)
 
-## 🌟 Features
+## Requisitos previos
 
-- **One-command installation**: Deploy ready-to-use applications with `app install`.
-- **Multi-app support**: Nextcloud, BookStack, Redis, MySQL, PostgreSQL, and more (constantly growing!).
-- **Tailscale integration**: Securely connect to your private infrastructure.
-- **Docker compatibility**: Isolation and portability for your applications.
-- **Privacy and control focus**: Everything runs on **your** infrastructure.
-
----
-
-## ⚙️ Prerequisites
-
-Before installing, make sure you have:
-- A **Linux**-based system (compatible with modern distributions like Ubuntu/Debian).  
-- **Docker** installed and running.  
-- Administrator permissions (**sudo/root**).  
-- Optional: **Tailscale** account if you want to enable secure private access.  
+- Linux (amd64 o arm64)
+- Go 1.23+ (solo para compilar desde fuente)
+- Docker instalado y en ejecución
+- `sudo` o permisos de root para operaciones de sistema
 
 ---
 
-## 📦 Installation
+## Instalación
 
-Install AutoHost CLI directly from GitHub with a single command:
+### Desde GitHub Releases (recomendado)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/SubstrateSystems/autohost-cli/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/mazapanuwu13/autohost-cli/main/scripts/install.sh | bash
 ```
 
 The script auto-detects your OS and architecture, downloads the latest binary from GitHub Releases, verifies the checksum, and installs it.
@@ -48,7 +41,7 @@ source ~/.bashrc
 ### Specific version
 
 ```bash
-VERSION=v0.4.0 curl -fsSL https://raw.githubusercontent.com/SubstrateSystems/autohost-cli/main/scripts/install.sh | bash
+VERSION=v0.4.0 curl -fsSL https://raw.githubusercontent.com/mazapanuwu13/autohost-cli/main/scripts/install.sh | bash
 ```
 
 ### Verify installation
@@ -64,122 +57,142 @@ autohost --version
 ### Example workflow
 
 ```bash
-# Initialize environment
-autohost init
+export PATH="$PATH:$HOME/.local/bin"   # añadir también a ~/.bashrc
+```
 
-# Initial setup (domain, networks, etc.)
-autohost setup
+### Compilar desde fuente
 
-# Install an application (example: Nextcloud)
-autohost app install
-
-# List installed applications
-autohost app ls
-
-# Start the application
-autohost app start nextcloud
-
-# Check app status
-autohost app status nextcloud
-
-# Stop the application
-autohost app stop nextcloud
-
-# Remove an application
-autohost app remove nextcloud
+```bash
+git clone https://github.com/mazapanuwu13/autohost-cli.git
+cd autohost-cli
+go build -o autohost main.go
 ```
 
 ---
 
-## 📂 Supported Applications
+## Comandos disponibles
 
-| App        | Default Port | Status      |
-|------------|-------------|-------------|
-| Nextcloud  | 8081        | ✅ Stable   |
-| BookStack  | 6875        | ✅ Stable   |
-| MySQL      | 3306        | ✅ Stable   |
-| PostgreSQL | 5432        | ✅ Stable   |
-| Redis      | 6379        | ✅ Stable   |
+### `autohost agent` — Gestión del agente
 
-*(The list grows with each version. Your feedback helps prioritize new apps!)*
+```bash
+autohost agent install   # Descarga e instala el autohost-agent como servicio systemd
+```
+
+Tras la instalación, edita `/etc/autohost/config.yaml` y arranca el servicio:
+
+```bash
+sudo nano /etc/autohost/config.yaml
+sudo systemctl enable autohost-agent
+sudo systemctl start autohost-agent
+```
+
+### `autohost enroll` — Enrollment de nodos
+
+```bash
+autohost enroll link --api <URL_API> --token <ENROLLMENT_TOKEN> [--name <nombre>]
+```
+
+Enlaza el nodo actual con la cloud API. El comando:
+1. Auto-detecta hostname, IP local, OS y arquitectura
+2. Llama a `POST /v1/enrollments/enroll` con el token de enrollment
+3. Guarda el `agent_token` resultante en `/etc/autohost/config.yaml`
+
+Ejemplo:
+
+```bash
+autohost enroll link \
+  --api http://192.168.1.10:8080 \
+  --token autohost-enroll_xxxx \
+  --name mi-servidor
+```
 
 ---
 
-## 🏗 Architecture
+## Comandos en desarrollo
 
-The project follows **Clean Architecture** principles with the following structure:
+Los siguientes comandos están implementados pero no están activos en el binario actual (comentados en `root.go`). Se activarán progresivamente:
+
+| Comando | Descripción |
+|---------|-------------|
+| `autohost setup` | Instala Docker, Caddy y configura el servidor |
+| `autohost app install [nombre]` | Instala una app del catálogo |
+| `autohost app ls` | Lista apps instaladas |
+| `autohost app start/stop/status/remove [nombre]` | Gestiona el ciclo de vida de una app |
+| `autohost expose app` | Expone una app via Tailscale (privado) o Cloudflare (público) |
+
+### Apps en el catálogo
+
+| App | Puerto por defecto |
+|-----|-------------------|
+| Nextcloud | 8081 |
+| BookStack | 6875 |
+| Joplin | — |
+| Excalidraw | — |
+| MySQL | 3306 |
+| PostgreSQL | 5432 |
+| Redis | 6379 |
+
+---
+
+## Estructura del proyecto
 
 ```
-autohost-cli/
-├── cmd/                    # CLI commands (Cobra)
+.
+├── cmd/autohost-cli/
+│   ├── root.go           # Punto de entrada, registro de comandos
+│   ├── agent/            # autohost agent install
+│   ├── app/              # autohost app (install, ls, start, stop, status, remove)
+│   ├── expose/           # autohost expose app
+│   ├── install/          # autohost install
+│   └── setup/            # autohost setup
 ├── internal/
-│   ├── adapters/          # External integrations (Docker, Caddy, Tailscale, etc.)
-│   │   └── storage/       # Database repositories (SQLite)
-│   ├── app/               # Application services (business logic)
-│   ├── domain/            # Domain models and interfaces
-│   └── platform/          # Platform utilities (config, DI, filesystem)
-├── db/                    # Database migrations and seeds
-├── assets/                # Embedded templates (docker-compose files)
-├── utils/                 # Utility functions
-└── scripts/               # Installation and testing scripts
+│   ├── adapters/         # Integraciones externas
+│   │   ├── caddy/
+│   │   ├── cloudflare/
+│   │   ├── coreDNS/
+│   │   ├── docker/
+│   │   ├── tailscale/
+│   │   ├── terraform/
+│   │   └── storage/      # Repositorios SQLite
+│   ├── app/              # Servicios de aplicación (AppService, ExposeService, SetupService)
+│   ├── domain/           # Modelos e interfaces de dominio
+│   ├── platform/         # DI, configuración, filesystem
+│   └── plugins/enroll/   # Plugin de enrollment de nodos
+├── assets/docker/        # Plantillas docker-compose embebidas por app
+├── utils/                # Helpers (paths, env, secrets, URLs…)
+├── scripts/
+│   ├── install.sh        # Instalador del CLI
+│   ├── autohost-multipass.sh
+│   └── autohost-incus.sh
+└── Makefile
 ```
 
-### Key Components
+---
 
-- **Domain Layer**: Core business logic and interfaces
-- **Application Layer**: Use cases and service orchestration
-- **Adapters Layer**: External integrations (Docker, Caddy, Tailscale, CloudFlare, etc.)
-- **Infrastructure**: Database, configuration, and platform-specific code
+## Comandos Make (entornos de prueba)
+
+```bash
+# Multipass
+make vm-run        # Crea VM de prueba (autohost-test) con Multipass
+make vm-update     # Actualiza el binario en la VM
+make vm-delete     # Elimina la VM
+
+# Incus
+make incus-run     # Crea instancia de prueba con Incus
+make incus-update  # Actualiza el binario en la instancia
+make incus-delete  # Elimina la instancia
+```
 
 ---
 
-## 🧪 Testing Environment
+## Convenciones de código
 
-### Multipass VM for Testing
+- Go 1.23.0, `gofmt` / `goimports` obligatorio
+- Errores envueltos con contexto: `fmt.Errorf("contexto: %w", err)`
+- Comandos idempotentes: crear si no existe, actualizar si cambió, no duplicar
+- Sin secretos en logs ni mensajes de error
+- Detectar root con `os.Geteuid() == 0`; usar `sudo` como fallback si está disponible
 
-You need to have **Multipass** installed: https://canonical.com/multipass
+## Licencia
 
-| Command                              | Description                                                    |
-|--------------------------------------|----------------------------------------------------------------|
-| `make vm-run`                        | Creates VM (autohost-test) with autohost binary in bin folder |
-| `make vm-update`                     | Updates autohost binary in VM (autohost-test) bin folder      |
-| `make vm-delete`                     | Deletes the VM (autohost-test)                                |
-
----
-
-## 🔒 Philosophy
-
-In a world where most applications are in the cloud, **AutoHost CLI** gives you back the power:  
-- You control **your data**.  
-- You eliminate dependency on multiple SaaS providers.  
-- You build your own scalable and private infrastructure.  
-
----
-
-## 🤝 Contributing
-
-Want to contribute?  
-1. Fork the repository.  
-2. Create a branch for your feature/fix.  
-3. Submit a Pull Request.  
-4. Check issues labeled **good first issue** to get started.
-
-### Development Guidelines
-
-- Follow Go 1.23.0 standards
-- Use `gofmt` and `goimports` for formatting
-- Run `go vet` before committing
-- Keep functions small and focused
-- Wrap errors with context: `fmt.Errorf("context: %w", err)`
-- Maintain idempotency in commands
-- No secrets in logs or error messages
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License**.
-
----
-
-> 💡 **Tip:** For updates and news, visit [autohst.dev](https://autohst.dev) or follow us on social media.
+MIT

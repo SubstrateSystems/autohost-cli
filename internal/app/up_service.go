@@ -15,6 +15,9 @@ import (
 const DefaultCloudURL = "https://cloud.autohst.dev"
 const DefaultAPIURL = "https://api.autohst.dev"
 
+// const DefaultCloudURL = "http://192.168.101.2:3000"
+// const DefaultAPIURL = "http://192.168.101.2:8080"
+
 // UpService handles the interactive node enrollment flow (Tailscale-style).
 type UpService struct{}
 
