@@ -120,20 +120,22 @@ func (s *AgentService) Update() error {
 	// Restart the systemd service if available.
 	if _, err := exec.LookPath("systemctl"); err == nil {
 		fmt.Print("🔁 Reiniciando servicio autohost-agent... ")
-		restart := exec.Command("systemctl", "restart", agentBinName)
-		restart.Stdout = os.Stdout
-		restart.Stderr = os.Stderr
-		if err := restart.Run(); err != nil {
-			// Try with sudo
-			restart = exec.Command("sudo", "systemctl", "restart", agentBinName)
-			restart.Stdout = os.Stdout
-			restart.Stderr = os.Stderr
-			if err2 := restart.Run(); err2 != nil {
-				fmt.Printf("\n⚠️  No se pudo reiniciar: %v\n", err)
-				fmt.Println("   Reinicia manualmente: systemctl restart autohost-agent")
-				return nil
-			}
+
+		var restartCmd *exec.Cmd
+		if os.Geteuid() == 0 {
+			restartCmd = exec.Command("systemctl", "restart", agentBinName)
+		} else {
+			restartCmd = exec.Command("sudo", "systemctl", "restart", agentBinName)
 		}
+		restartCmd.Stdout = os.Stdout
+		restartCmd.Stderr = os.Stderr
+
+		if err := restartCmd.Run(); err != nil {
+			fmt.Printf("\n⚠️  No se pudo reiniciar el servicio: %v\n", err)
+			fmt.Println("   Reinicia manualmente: sudo systemctl restart autohost-agent")
+			return nil
+		}
+
 		fmt.Println("✅")
 		fmt.Println("✅ Agente actualizado y reiniciado correctamente.")
 	} else {
