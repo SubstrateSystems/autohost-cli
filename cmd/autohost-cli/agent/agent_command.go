@@ -13,6 +13,7 @@ func AgentCmd(svc *app.AgentService) *cobra.Command {
 		Short: "Gestión del agente de AutoHost",
 	}
 	cmd.AddCommand(newInstallCmd(svc))
+	cmd.AddCommand(newUpdateCmd(svc))
 	return cmd
 }
 
@@ -26,6 +27,22 @@ para conectar el nodo al cloud.`,
 		Example: "  autohost agent install",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return svc.Install()
+		},
+	}
+}
+
+func newUpdateCmd(svc *app.AgentService) *cobra.Command {
+	return &cobra.Command{
+		Use:   "update",
+		Short: "Actualiza el agente a la última versión disponible",
+		Long: `Descarga e instala la última versión del agente, reemplazando el binario actual,
+y reinicia el servicio systemd. La nueva versión se reporta automáticamente al cloud.
+
+Usa la variable de entorno VERSION para fijar una versión específica:
+  VERSION=v0.3.0 autohost agent update`,
+		Example: "  autohost agent update\n  VERSION=v0.3.0 autohost agent update",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return svc.Update()
 		},
 	}
 }
