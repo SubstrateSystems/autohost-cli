@@ -24,5 +24,6 @@ type NodeResponse struct {
 	NodeID       string `json:"node_id"`
 	ApiToken     string `json:"api_token"`
 	RefreshToken string `json:"refresh_token"`
+	GRPCAddress  string `json:"grpc_address"`
 	ExpiresIn    int64  `json:"expires_in"`
 }

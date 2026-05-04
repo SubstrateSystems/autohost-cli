@@ -18,6 +18,7 @@ type AgentConfig struct {
 	RefreshToken string
 	ApiURL       string
 	NodeID       string
+	GRPCAddress  string
 }
 
 const configPath = "/etc/autohost/config.yaml"
@@ -69,15 +70,22 @@ func Save(cfg AgentConfig) error {
 		updated = regexp.MustCompile(`(?m)^api_url:.*$`).
 			ReplaceAllString(updated, fmt.Sprintf(`api_url: "%s"`, cfg.ApiURL))
 
-		// Derive ws_url and grpc_address from api_url.
+		// Derive ws_url from api_url.
 		if wsURL, err := deriveWSURL(cfg.ApiURL); err == nil {
 			updated = regexp.MustCompile(`(?m)^ws_url:.*$`).
 				ReplaceAllString(updated, fmt.Sprintf(`ws_url: "%s"`, wsURL))
 		}
-		if grpcAddr, err := deriveGRPCAddress(cfg.ApiURL); err == nil {
-			updated = regexp.MustCompile(`(?m)^grpc_address:.*$`).
-				ReplaceAllString(updated, fmt.Sprintf(`grpc_address: "%s"`, grpcAddr))
+	}
+	// Use grpc_address returned by the server; fall back to deriving it from api_url.
+	grpcAddr := cfg.GRPCAddress
+	if grpcAddr == "" && cfg.ApiURL != "" {
+		if derived, err := deriveGRPCAddress(cfg.ApiURL); err == nil {
+			grpcAddr = derived
 		}
+	}
+	if grpcAddr != "" {
+		updated = regexp.MustCompile(`(?m)^grpc_address:.*$`).
+			ReplaceAllString(updated, fmt.Sprintf(`grpc_address: "%s"`, grpcAddr))
 	}
 	if cfg.NodeID != "" {
 		updated = regexp.MustCompile(`(?m)^node_id:.*$`).

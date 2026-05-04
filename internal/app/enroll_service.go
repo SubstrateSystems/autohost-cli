@@ -48,6 +48,7 @@ func (s *EnrollService) Link(api, token, name string) error {
 		RefreshToken: resp.RefreshToken,
 		ApiURL:       api,
 		NodeID:       resp.NodeID,
+		GRPCAddress:  resp.GRPCAddress,
 	}); err != nil {
 		return fmt.Errorf("error guardando configuración: %w", err)
 	}
