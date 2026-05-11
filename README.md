@@ -128,6 +128,7 @@ Los siguientes comandos están implementados pero no están activos en el binari
 | BookStack | 6875 |
 | Joplin | — |
 | Excalidraw | — |
+| Navidrome | 4533 |
 | MySQL | 3306 |
 | PostgreSQL | 5432 |
 | Redis | 6379 |

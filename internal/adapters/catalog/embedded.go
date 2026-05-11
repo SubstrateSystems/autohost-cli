@@ -41,6 +41,10 @@ var registry = map[string]entry{
 		defaultPort:   "9000",
 		defaultPortDB: "9001",
 	},
+	"navidrome": {
+		description: "Navidrome — servidor de música personal compatible con Subsonic",
+		defaultPort: "4533",
+	},
 	"mysql": {
 		description: "MySQL — base de datos relacional",
 		defaultPort: "3306",

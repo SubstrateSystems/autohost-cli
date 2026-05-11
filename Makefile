@@ -43,30 +43,30 @@ release:
 
 # ===== Incus ====== #
 
-incus-run:
-	@echo "🚀 Creating Incus instance ($(INCUS_INSTANCE))..."
-	@VM_NAME="$(INCUS_INSTANCE)" bash scripts/autohost-incus.sh run
+# run-incus: build
+# 	@echo "🚀 Creating Incus instance ($(INCUS_INSTANCE))..."
+# 	@VM_NAME="$(INCUS_INSTANCE)" bash scripts/autohost-incus.sh run
 
-incus-update:
+update-incus:
 	@echo "🔄 Updating autohost binary in Incus instance ($(INCUS_INSTANCE))..."
 	@VM_NAME="$(INCUS_INSTANCE)" bash scripts/autohost-incus.sh update
 
-incus-delete:
-	@echo "🧹 Deleting Incus instance ($(INCUS_INSTANCE))..."
-	@VM_NAME="$(INCUS_INSTANCE)" bash scripts/autohost-incus.sh delete
+# delete-incus:
+# 	@echo "🧹 Deleting Incus instance ($(INCUS_INSTANCE))..."
+# 	@VM_NAME="$(INCUS_INSTANCE)" bash scripts/autohost-incus.sh delete
 
-incus-start:
-	@echo "▶️ Starting Incus instance ($(INCUS_INSTANCE))..."
-	@VM_NAME="$(INCUS_INSTANCE)" bash scripts/autohost-incus.sh start
+# start-incus:
+# 	@echo "▶️ Starting Incus instance ($(INCUS_INSTANCE))..."
+# 	@VM_NAME="$(INCUS_INSTANCE)" bash scripts/autohost-incus.sh start
 
-incus-stop:
-	@echo "⏹ Stopping Incus instance ($(INCUS_INSTANCE))..."
-	@VM_NAME="$(INCUS_INSTANCE)" bash scripts/autohost-incus.sh stop
+# stop-incus:
+# 	@echo "⏹ Stopping Incus instance ($(INCUS_INSTANCE))..."
+# 	@VM_NAME="$(INCUS_INSTANCE)" bash scripts/autohost-incus.sh stop
 
-incus-up: incus-update
-	@echo "🧪 Testing autohost up inside Incus instance ($(INCUS_INSTANCE))..."
-	@GATEWAY=$$(incus exec $(INCUS_INSTANCE) -- sh -c "ip route show default" | awk '/default/{print $$3}' | head -1); \
-	 echo "   Container gateway (host): $$GATEWAY"; \
-	 echo "   Cloud URL (browser): http://localhost:3000"; \
-	 echo "   API URL (container -> host): http://$$GATEWAY:8080"; \
-	 incus exec $(INCUS_INSTANCE) -- env AUTOHOST_CLOUD_URL="http://localhost:3000" AUTOHOST_API_URL="http://$$GATEWAY:8080" /usr/local/bin/autohost up
+# incus-up: update-incus
+# 	@echo "🧪 Testing autohost up inside Incus instance ($(INCUS_INSTANCE))..."
+# 	@GATEWAY=$$(incus exec $(INCUS_INSTANCE) -- sh -c "ip route show default" | awk '/default/{print $$3}' | head -1); \
+# 	 echo "   Container gateway (host): $$GATEWAY"; \
+# 	 echo "   Cloud URL (browser): http://localhost:3000"; \
+# 	 echo "   API URL (container -> host): http://$$GATEWAY:8080"; \
+# 	 incus exec $(INCUS_INSTANCE) -- env AUTOHOST_CLOUD_URL="http://localhost:3000" AUTOHOST_API_URL="http://$$GATEWAY:8080" /usr/local/bin/autohost up

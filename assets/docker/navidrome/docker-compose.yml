@@ -1,0 +1,25 @@
+services:
+  $service-name:
+    image: deluan/navidrome:latest
+    container_name: $service-name
+    restart: unless-stopped
+    ports:
+      - "$port:4533"
+    environment:
+      ND_SCANSCHEDULE: "1h"
+      ND_LOGLEVEL: "info"
+      ND_SESSIONTIMEOUT: "24h"
+      ND_BASEURL: ""
+    volumes:
+      - $service-name-data:/data
+      - $service-name-music:/music:ro
+    networks:
+      - autohost_net
+
+volumes:
+  $service-name-data:
+  $service-name-music:
+
+networks:
+  autohost_net:
+    external: true
